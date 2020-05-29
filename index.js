@@ -175,13 +175,14 @@ class Expense {
 const expenses = [];
 
 const balances = {
-  amount: 10,
-  toPay: 20,
-  due: 30,
+  amount: 0,
+  toPay: 0,
+  due: 0,
 };
 
 /**
  * @typedef Action
+ * @property {number}     id
  * @property {() => void} undo
  * @property {() => void} redo
  */
@@ -189,6 +190,14 @@ const balances = {
 /** @type {Action[]} */
 const actions = [];
 let nextAction = 0;
+let nextActionId = 0;
+let makeActionId = () => ++nextActionId;
+let cleanActionId = 0;
+
+function isClean() {
+  if (nextAction === 0) return cleanActionId === 0;
+  return actions[nextAction - 1].id === cleanActionId;
+}
 
 balanceAmountEl.value = formatMoney(balances.amount);
 balanceToPayEl.value = formatMoney(balances.toPay);
@@ -256,12 +265,14 @@ function undo() {
   if (nextAction === 0) return;
   const action = actions[--nextAction];
   action.undo();
+  sendToBackend('isClean', isClean());
 }
 
 function redo() {
   if (nextAction === actions.length) return;
   const action = actions[nextAction++];
   action.redo();
+  sendToBackend('isClean', isClean());
 }
 
 function doAction(/** @type {Action} */ action) {
@@ -280,6 +291,7 @@ class ChangeBalanceAction {
    * @param {number} newVal
    */
   constructor(el, key, newVal) {
+    this.id = makeActionId();
     this.el = el;
     this.key = key;
     this.newVal = newVal;
@@ -301,6 +313,7 @@ class ChangeBalanceAction {
 
 class AddExpenseAction {
   constructor() {
+    this.id = makeActionId();
     this.expense = new Expense();
   }
 
@@ -331,6 +344,7 @@ class Space {
 
 class AddSpaceAction {
   constructor() {
+    this.id = makeActionId();
     this.space = new Space();
   }
 
@@ -353,6 +367,7 @@ class EditAction {
    * @param {any}        newVal
    */
   constructor(cell, oldVal, newVal) {
+    this.id = makeActionId();
     this.cell = cell;
     this.oldVal = oldVal;
     this.newVal = newVal;
@@ -405,3 +420,6 @@ function blink(/** @type {HTMLElement} */el) {
  * @typedef Dependencies
  * @property {Effected} effects
  */
+
+/** @type {(channel: string, data: any) => void} */
+var sendToBackend;
