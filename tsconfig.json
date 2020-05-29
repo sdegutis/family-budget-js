@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "sourceRoot": ".",
+    "inlineSourceMap": true,
+    "outDir": "dest",
+  }
+}
