@@ -17,8 +17,8 @@ electron.app.whenReady().then(() => {
   const saveFile = () => { };
   const saveAsFile = () => { };
   const exit = () => { };
-  const undo = () => { };
-  const redo = () => { };
+  const undo = () => mainWindow.webContents.send('Undo');
+  const redo = () => mainWindow.webContents.send('Redo');
   const addExpense = () => mainWindow.webContents.send('AddExpense');
   const addSpace = () => { };
 

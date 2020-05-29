@@ -51,6 +51,16 @@ const balances = {
   due: 30,
 };
 
+/**
+ * @typedef Action
+ * @property {() => void} undo
+ * @property {() => void} redo
+ */
+
+/** @type {Action[]} */
+const actions = [];
+let nextAction = 0;
+
 balanceAmountEl.value = formatMoney(balances.amount);
 balanceToPayEl.value = formatMoney(balances.toPay);
 balanceDueEl.value = formatMoney(balances.due);
@@ -72,8 +82,7 @@ function setupChangeBalance(el, key) {
   el.onblur = (e) => cancel();
   el.onkeydown = (e) => {
     if (e.keyCode === 13) {
-      balances[key] = parseMoney(el.value);
-      el.value = formatMoney(balances[key]);
+      doAction(new ChangeBalanceAction(el, key, parseMoney(el.value)));
       el.blur();
     }
     else if (e.keyCode === 27) {
@@ -92,6 +101,49 @@ function parseMoney(/** @type {string} */ amount) {
 
 function addExpense() {
   expenses.push(new Expense());
+}
+
+function undo() {
+  const action = actions[--nextAction];
+  action.undo();
+}
+
+function redo() {
+  const action = actions[nextAction++];
+  action.redo();
+}
+
+function doAction(/** @type {Action} */ action) {
+  if (nextAction < actions.length) {
+    actions.splice(nextAction);
+  }
+
+  actions.push(action);
+  redo();
+}
+
+class ChangeBalanceAction {
+  /**
+   * @param {HTMLInputElement} el
+   * @param {keyof balances} key
+   * @param {number} newVal
+   */
+  constructor(el, key, newVal) {
+    this.el = el;
+    this.key = key;
+    this.newVal = newVal;
+    this.oldVal = balances[key];
+  }
+
+  undo() {
+    balances[this.key] = this.oldVal;
+    this.el.value = formatMoney(balances[this.key]);
+  }
+
+  redo() {
+    balances[this.key] = this.newVal;
+    this.el.value = formatMoney(balances[this.key]);
+  }
 }
 
 /**

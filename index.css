@@ -38,3 +38,7 @@ input {
   outline: none;
   border: none;
 }
+
+input:focus {
+  background: #17f3;
+}
