@@ -2,6 +2,49 @@ const balanceAmountEl = /**@type HTMLInputElement*/(document.getElementById('bal
 const balanceToPayEl = /**@type HTMLInputElement*/(document.getElementById('balanceToPay'));
 const balanceDueEl = /**@type HTMLInputElement*/(document.getElementById('balanceDue'));
 
+const expenseRowsEl = /**@type HTMLTableSectionElement*/(document.getElementById('expenseRows'));
+
+class Expense {
+  constructor(/** @type {ExpenseData=} */ data) {
+    this.name = data?.name ?? 'Unnamed bill';
+    this.amount = data?.amount ?? 0;
+    this.payPercent = data?.payPercent ?? 1;
+    this.paidPercent = data?.paidPercent ?? 0;
+    this.usuallyDue = data?.usuallyDue ?? '';
+
+    this.tr = document.createElement('tr');
+    expenseRowsEl.append(this.tr);
+  }
+
+  toPay() {
+    return this.amount * this.payPercent;
+  }
+
+  due() {
+    return this.toPay() - (this.toPay() * this.paidPercent);
+  }
+
+  actuallyDue() {
+    return this.due() === 0 ? '-' : this.usuallyDue;
+  }
+
+  serialize() {
+    return {
+      name: this.name,
+      amount: this.amount,
+      payPercent: this.payPercent,
+      paidPercent: this.paidPercent,
+      usuallyDue: this.usuallyDue,
+    };
+  }
+}
+
+const newLocal = new Expense();
+newLocal.toPay
+
+/** @type {Expense[]} */
+const expenses = [];
+
 const balances = {
   amount: 10,
   toPay: 20,
@@ -46,3 +89,16 @@ function formatMoney(/** @type {number} */ amount) {
 function parseMoney(/** @type {string} */ amount) {
   return parseFloat(amount.replace(/\$/g, ''));
 }
+
+function addExpense() {
+  expenses.push(new Expense());
+}
+
+/**
+ * @typedef ExpenseData
+ * @property {string} name
+ * @property {number} amount
+ * @property {number} payPercent
+ * @property {number} paidPercent
+ * @property {string} usuallyDue
+ */

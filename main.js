@@ -12,10 +12,6 @@ electron.app.whenReady().then(() => {
 
   mainWindow.loadFile('index.html');
 
-  const sendToClient = (/**@type {string}*/msg) => {
-    mainWindow.webContents.send(msg);
-  };
-
   const newFile = () => { };
   const openFile = () => { };
   const saveFile = () => { };
@@ -23,7 +19,7 @@ electron.app.whenReady().then(() => {
   const exit = () => { };
   const undo = () => { };
   const redo = () => { };
-  const addExpense = () => sendToClient('AddExpense');
+  const addExpense = () => mainWindow.webContents.send('AddExpense');
   const addSpace = () => { };
 
   mainWindow.on('close', (e) => {

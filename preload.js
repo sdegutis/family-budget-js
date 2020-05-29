@@ -1,1 +1,3 @@
-console.log('in preload')
+const electron = require('electron');
+
+electron.ipcRenderer.on('AddExpense', () => addExpense());
