@@ -82,7 +82,10 @@ function setupChangeBalance(el, key) {
   el.onblur = (e) => cancel();
   el.onkeydown = (e) => {
     if (e.keyCode === 13) {
-      doAction(new ChangeBalanceAction(el, key, parseMoney(el.value)));
+      const newVal = parseMoney(el.value);
+      if (balances[key] !== newVal) {
+        doAction(new ChangeBalanceAction(el, key, newVal));
+      }
       el.blur();
     }
     else if (e.keyCode === 27) {
@@ -96,7 +99,7 @@ function formatMoney(/** @type {number} */ amount) {
 }
 
 function parseMoney(/** @type {string} */ amount) {
-  return parseFloat(amount.replace(/\$/g, ''));
+  return Math.round(parseFloat(amount.replace(/\$/g, '')) * 100) / 100;
 }
 
 function addExpense() {
@@ -109,14 +112,12 @@ window.addEventListener('keydown', (e) => {
 });
 
 function undo() {
-  console.log('running undo');
   if (nextAction === 0) return;
   const action = actions[--nextAction];
   action.undo();
 }
 
 function redo() {
-  console.log('running redo');
   if (nextAction === actions.length) return;
   const action = actions[nextAction++];
   action.redo();
@@ -147,12 +148,34 @@ class ChangeBalanceAction {
   undo() {
     balances[this.key] = this.oldVal;
     this.el.value = formatMoney(balances[this.key]);
+    blink(this.el);
   }
 
   redo() {
     balances[this.key] = this.newVal;
     this.el.value = formatMoney(balances[this.key]);
+    blink(this.el);
   }
+}
+
+/** @type {() => void} */
+let cancelLastBlink = null;
+
+function blink(/** @type {HTMLElement} */el) {
+  if (cancelLastBlink) cancelLastBlink();
+
+  setTimeout(() => el.classList.add('changed'), 20);
+  const clearChange = () => el.classList.remove('changed');
+
+  const stopBlink = setTimeout(() => {
+    clearChange();
+    cancelLastBlink = null;
+  }, 1000);
+
+  cancelLastBlink = () => {
+    clearTimeout(stopBlink);
+    clearChange();
+  };
 }
 
 /**

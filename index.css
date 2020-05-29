@@ -5,7 +5,7 @@
 }
 
 html {
-  background: #f3f3f3;
+  background: #f0f0f0;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-size: 10pt;
 }
@@ -28,8 +28,29 @@ th {
   min-width: 100px;
 }
 
+.empty {
+  background: #f0f0f0;
+}
+
 .cell {
   padding: 5px;
+}
+
+@keyframes blinker {
+  0% {
+    background-color: yellow;
+  }
+  100% {
+    background-color: #fff;
+  }
+}
+
+input.changed {
+  animation: blinker 1s ease-in-out;
+}
+
+tr.changed .cell {
+  animation: blinker 1s ease-in-out;
 }
 
 input {
