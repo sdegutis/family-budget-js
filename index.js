@@ -168,13 +168,13 @@ class Expense {
 
 /**
  * @typedef ExpenseLike
- * @property {*} tr
+ * @property {HTMLTableRowElement} tr
  */
 
 /** @type {ExpenseLike[]} */
 const expenses = [];
 
-const balances = {
+let balances = {
   amount: 0,
   toPay: 0,
   due: 0,
@@ -199,9 +199,34 @@ function isClean() {
   return actions[nextAction - 1].id === cleanActionId;
 }
 
-balanceAmountEl.value = formatMoney(balances.amount);
-balanceToPayEl.value = formatMoney(balances.toPay);
-balanceDueEl.value = formatMoney(balances.due);
+function newFile() {
+  actions.length = 0;
+  nextAction = 0;
+  nextActionId = 0;
+  cleanActionId = 0;
+
+  for (const expense of expenses) {
+    expense.tr.remove();
+  }
+  expenses.length = 0;
+}
+
+/**
+ * @param {typeof balances} data
+ */
+function setupBalances(data) {
+  balances = data;
+
+  balanceAmountEl.value = formatMoney(balances.amount);
+  balanceToPayEl.value = formatMoney(balances.toPay);
+  balanceDueEl.value = formatMoney(balances.due);
+}
+
+setupBalances({
+  amount: 0,
+  due: 0,
+  toPay: 0,
+});
 
 setupChangeBalance(balanceAmountEl, 'amount');
 setupChangeBalance(balanceToPayEl, 'toPay');

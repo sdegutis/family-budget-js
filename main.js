@@ -26,7 +26,8 @@ electron.app.whenReady().then(() => {
 
   const newFile = () => {
     if (nevermind("start a new file")) return;
-    console.log('new file');
+    isClean = true;
+    mainWindow.webContents.send('NewFile');
   };
 
   const openFile = () => {
@@ -34,6 +35,7 @@ electron.app.whenReady().then(() => {
   };
 
   const saveFile = () => {
+    if (isClean) return;
   };
 
   const saveAsFile = () => {

@@ -14,3 +14,4 @@ electron.ipcRenderer.on('AddExpense', () => addExpense());
 electron.ipcRenderer.on('AddSpace', () => addSpace());
 electron.ipcRenderer.on('Undo', () => undo());
 electron.ipcRenderer.on('Redo', () => redo());
+electron.ipcRenderer.on('NewFile', () => newFile());
