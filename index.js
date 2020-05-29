@@ -166,7 +166,12 @@ class Expense {
   }
 }
 
-/** @type {Expense[]} */
+/**
+ * @typedef ExpenseLike
+ * @property {*} tr
+ */
+
+/** @type {ExpenseLike[]} */
 const expenses = [];
 
 const balances = {
@@ -238,6 +243,10 @@ function addExpense() {
   doAction(new AddExpenseAction());
 }
 
+function addSpace() {
+  doAction(new AddSpaceAction());
+}
+
 window.addEventListener('keydown', (e) => {
   if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); }
   if (e.ctrlKey && e.key === 'y') { e.preventDefault(); redo(); }
@@ -304,6 +313,36 @@ class AddExpenseAction {
     expenses.push(this.expense);
     expenseRowsEl.append(this.expense.tr);
     blink(this.expense.tr);
+  }
+}
+
+class Space {
+  constructor() {
+    this.tr = document.createElement('tr');
+
+    const td = document.createElement('td');
+    td.innerHTML = '&nbsp;';
+    td.colSpan = 8;
+    td.className = 'empty';
+
+    this.tr.append(td);
+  }
+}
+
+class AddSpaceAction {
+  constructor() {
+    this.space = new Space();
+  }
+
+  undo() {
+    expenses.splice(expenses.length - 1);
+    expenseRowsEl.removeChild(this.space.tr);
+  }
+
+  redo() {
+    expenses.push(this.space);
+    expenseRowsEl.append(this.space.tr);
+    blink(this.space.tr);
   }
 }
 

@@ -20,7 +20,7 @@ electron.app.whenReady().then(() => {
   const undo = () => mainWindow.webContents.send('Undo');
   const redo = () => mainWindow.webContents.send('Redo');
   const addExpense = () => mainWindow.webContents.send('AddExpense');
-  const addSpace = () => { };
+  const addSpace = () => mainWindow.webContents.send('AddSpace');
 
   mainWindow.on('close', (e) => {
     //e.preventDefault();
