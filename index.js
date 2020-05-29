@@ -200,7 +200,17 @@ function isClean() {
 }
 
 function openFile(/** @type {FileData} */json) {
-  // json.expenses.forEach(j => j.space);
+  newFile();
+  setupBalances(json.balances);
+
+  for (const data of json.expenses) {
+    if (data.space) {
+      doAction(new AddExpenseAction(new Space()));
+    }
+    else {
+      doAction(new AddExpenseAction(new Expense(data)));
+    }
+  }
 }
 
 function newFile() {
@@ -284,7 +294,7 @@ function parsePercent(/** @type {string} */ amount) {
 }
 
 function addExpense() {
-  doAction(new AddExpenseAction());
+  doAction(new AddExpenseAction(new Expense));
 }
 
 function addSpace() {
@@ -347,9 +357,12 @@ class ChangeBalanceAction {
 }
 
 class AddExpenseAction {
-  constructor() {
+  /**
+   * @param {ExpenseLike} expense
+   */
+  constructor(expense) {
     this.id = makeActionId();
-    this.expense = new Expense();
+    this.expense = expense;
   }
 
   undo() {

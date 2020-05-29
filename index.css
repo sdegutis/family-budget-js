@@ -16,6 +16,10 @@ table {
   table-layout: fixed;
 }
 
+thead tr td {
+  position: sticky;
+}
+
 th {
   text-align: left;
 }
