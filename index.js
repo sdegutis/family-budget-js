@@ -4,122 +4,164 @@ const balanceDueEl = /**@type HTMLInputElement*/(document.getElementById('balanc
 
 const expenseRowsEl = /**@type HTMLTableSectionElement*/(document.getElementById('expenseRows'));
 
+class CalculatedCell {
+  /**
+   * @param {object}               opts
+   * @param {() => any}            opts.get
+   * @param {(val: any) => string} opts.format
+   * @param {Dependencies[]}       opts.dependsOn
+   */
+  constructor({ get, format, dependsOn }) {
+    for (const dep of dependsOn) {
+      dep.effects = this;
+    }
+
+    /** @type {Effected} */
+    this.effects = null;
+
+    this.get = get;
+    this.format = format;
+
+    this.td = document.createElement('td');
+    this.td.classList.add('cell');
+    this.refresh();
+  }
+
+  refresh() {
+    this.value = this.get();
+    this.td.innerText = this.format(this.value);
+
+    if (this.effects) {
+      this.effects.refresh();
+    }
+  }
+}
+
 class InputCell {
   /**
-   * @param {object}              opts
-   * @param {() => string}        opts.get
-   * @param {(s: string) => void} opts.set
+   * @param {object}               opts
+   * @param {any}                  opts.initial
+   * @param {(val: any) => string} opts.format
+   * @param {(s: string) => any}   opts.parse
    */
-  constructor({ get, set }) {
+  constructor({ initial, format, parse }) {
+    /** @type {Effected} */
+    this.effects = null;
+
+    this.value = initial;
+    this.format = format;
+
     this.td = document.createElement('td');
     this.input = document.createElement('input');
     this.input.classList.add('cell');
 
-    this.input.value = get();
+    this.input.value = format(this.value);
 
     this.input.onblur = () => {
-      this.input.value = get();
+      this.input.value = format(this.value);
       this.input.blur();
     };
 
     this.input.onkeydown = (e) => {
       if (e.keyCode === 13) {
-        set(this.input.value);
+        const newVal = parse(this.input.value);
+        if (this.value !== newVal) {
+          doAction(new EditAction(this, this.value, newVal));
+          this.input.blur();
+        }
       }
       else if (e.keyCode === 27) {
-        this.input.value = get();
+        this.input.value = format(this.value);
         this.input.blur();
       }
     };
 
     this.td.append(this.input);
   }
+
+  useValue(/** @type {any} */ val) {
+    this.value = val;
+    this.input.value = this.format(this.value);
+    blink(this.input);
+
+    if (this.effects) {
+      this.effects.refresh();
+    }
+  }
 }
-
-// class CalculatedCell {
-//   /**
-//    * @param {object}             opts
-//    * @param {() => string}       opts.get
-//    * @param {(s: string) => any} opts.set
-//    */
-//   constructor({ get, set }) {
-//     this.td = document.createElement('td');
-
-//     switch (type) {
-//       // case 'label': {
-//       //   this.td.classList.add('cell');
-//       //   this.td.innerText = expense[key].toString();
-//       //   break;
-//       // }
-//       case 'money': {
-//         const input = document.createElement('input');
-//         input.classList.add('cell');
-//         input.value = formatMoney(/**@type {*}*/(expense[key]));
-//         this.td.append(input);
-//         break;
-//       }
-//       case 'percent': {
-//         break;
-//       }
-//       case 'string': {
-//         break;
-//       }
-//     }
-
-//     expense.tr.append(this.td);
-//   }
-// }
 
 class Expense {
   constructor(/** @type {ExpenseData=} */ data) {
-    this.name = data?.name ?? 'Unnamed bill';
-    this.amount = data?.amount ?? 0;
-    this.payPercent = data?.payPercent ?? 1;
-    this.paidPercent = data?.paidPercent ?? 0;
-    this.usuallyDue = data?.usuallyDue ?? '';
-
     this.tr = document.createElement('tr');
     expenseRowsEl.append(this.tr);
 
     this.nameCell = new InputCell({
-      get: () => this.name,
-      set: (str) => doAction(new EditAction(this, 'name', str)),
+      initial: data?.name ?? 'New Expense',
+      format: s => s,
+      parse: s => s,
     });
 
     this.amountCell = new InputCell({
-      get: () => formatMoney(this.amount),
-      set: (str) => doAction(new EditAction(this, 'amount', parseMoney(str))),
+      initial: data?.amount ?? 0,
+      format: formatMoney,
+      parse: parseMoney,
+    });
+
+    this.payPercentCell = new InputCell({
+      initial: data?.payPercent ?? 1,
+      format: formatPercent,
+      parse: parsePercent,
+    });
+
+    this.toPayCell = new CalculatedCell({
+      get: () => this.amountCell.value * this.payPercentCell.value,
+      format: formatMoney,
+      dependsOn: [this.amountCell, this.payPercentCell],
+    });
+
+    this.paidPercentCell = new InputCell({
+      initial: data?.paidPercent ?? 0,
+      format: formatPercent,
+      parse: parsePercent,
+    });
+
+    this.dueCell = new CalculatedCell({
+      get: () => this.toPayCell.value - (this.toPayCell.value * this.paidPercentCell.value),
+      format: formatMoney,
+      dependsOn: [this.toPayCell, this.paidPercentCell],
+    });
+
+    this.usuallyDueCell = new InputCell({
+      initial: data?.usuallyDue ?? '',
+      format: s => s,
+      parse: s => s,
+    });
+
+    this.actuallyDueCell = new CalculatedCell({
+      get: () => this.dueCell.value === 0 ? '-' : this.usuallyDueCell.value,
+      format: formatMoney,
+      dependsOn: [this.dueCell, this.usuallyDueCell],
     });
 
     this.tr.append(
       this.nameCell.td,
       this.amountCell.td,
+      this.payPercentCell.td,
+      this.toPayCell.td,
+      this.paidPercentCell.td,
+      this.dueCell.td,
+      this.usuallyDueCell.td,
+      this.actuallyDueCell.td,
     );
-  }
-
-  set(/** @type {keyof this} */key, /** @type {any} */val) {
-    this[key] = val;
-  }
-
-  toPay() {
-    return this.amount * this.payPercent;
-  }
-
-  due() {
-    return this.toPay() - (this.toPay() * this.paidPercent);
-  }
-
-  actuallyDue() {
-    return this.due() === 0 ? '-' : this.usuallyDue;
   }
 
   serialize() {
     return {
-      name: this.name,
-      amount: this.amount,
-      payPercent: this.payPercent,
-      paidPercent: this.paidPercent,
-      usuallyDue: this.usuallyDue,
+      name: this.nameCell.value,
+      amount: this.amountCell.value,
+      payPercent: this.payPercentCell.value,
+      paidPercent: this.paidPercentCell.value,
+      usuallyDue: this.usuallyDueCell.value,
     };
   }
 }
@@ -167,8 +209,8 @@ function setupChangeBalance(el, key) {
       const newVal = parseMoney(el.value);
       if (balances[key] !== newVal) {
         doAction(new ChangeBalanceAction(el, key, newVal));
+        el.blur();
       }
-      el.blur();
     }
     else if (e.keyCode === 27) {
       cancel();
@@ -182,6 +224,14 @@ function formatMoney(/** @type {number} */ amount) {
 
 function parseMoney(/** @type {string} */ amount) {
   return Math.round(parseFloat(amount.replace(/\$/g, '')) * 100) / 100;
+}
+
+function formatPercent(/** @type {number} */ amount) {
+  return Math.round(amount * 100).toString() + '%';
+}
+
+function parsePercent(/** @type {string} */ amount) {
+  return Math.round(parseFloat(amount.replace(/%/g, ''))) / 100;
 }
 
 function addExpense() {
@@ -259,23 +309,22 @@ class AddExpenseAction {
 
 class EditAction {
   /**
-   * @param {Expense}       expense
-   * @param {keyof Expense} key
-   * @param {string|number} newVal
+   * @param {InputCell}  cell
+   * @param {any}        oldVal
+   * @param {any}        newVal
    */
-  constructor(expense, key, newVal) {
-    this.expense = expense;
-    this.key = key;
-    this.oldVal = /**@type {string|number}*/(expense[key]);
+  constructor(cell, oldVal, newVal) {
+    this.cell = cell;
+    this.oldVal = oldVal;
     this.newVal = newVal;
   }
 
   undo() {
-    this.expense.set(this.key, this.oldVal);
+    this.cell.useValue(this.oldVal);
   }
 
   redo() {
-    this.expense.set(this.key, this.newVal);
+    this.cell.useValue(this.newVal);
   }
 }
 
@@ -306,4 +355,14 @@ function blink(/** @type {HTMLElement} */el) {
  * @property {number} payPercent
  * @property {number} paidPercent
  * @property {string} usuallyDue
+ */
+
+/**
+ * @typedef Effected
+ * @property {() => void} refresh
+ */
+
+/**
+ * @typedef Dependencies
+ * @property {Effected} effects
  */
