@@ -103,12 +103,21 @@ function addExpense() {
   expenses.push(new Expense());
 }
 
+window.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); }
+  if (e.ctrlKey && e.key === 'y') { e.preventDefault(); redo(); }
+});
+
 function undo() {
+  console.log('running undo');
+  if (nextAction === 0) return;
   const action = actions[--nextAction];
   action.undo();
 }
 
 function redo() {
+  console.log('running redo');
+  if (nextAction === actions.length) return;
   const action = actions[nextAction++];
   action.redo();
 }
