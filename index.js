@@ -4,6 +4,72 @@ const balanceDueEl = /**@type HTMLInputElement*/(document.getElementById('balanc
 
 const expenseRowsEl = /**@type HTMLTableSectionElement*/(document.getElementById('expenseRows'));
 
+class InputCell {
+  /**
+   * @param {object}              opts
+   * @param {() => string}        opts.get
+   * @param {(s: string) => void} opts.set
+   */
+  constructor({ get, set }) {
+    this.td = document.createElement('td');
+    this.input = document.createElement('input');
+    this.input.classList.add('cell');
+
+    this.input.value = get();
+
+    this.input.onblur = () => {
+      this.input.value = get();
+      this.input.blur();
+    };
+
+    this.input.onkeydown = (e) => {
+      if (e.keyCode === 13) {
+        set(this.input.value);
+      }
+      else if (e.keyCode === 27) {
+        this.input.value = get();
+        this.input.blur();
+      }
+    };
+
+    this.td.append(this.input);
+  }
+}
+
+// class CalculatedCell {
+//   /**
+//    * @param {object}             opts
+//    * @param {() => string}       opts.get
+//    * @param {(s: string) => any} opts.set
+//    */
+//   constructor({ get, set }) {
+//     this.td = document.createElement('td');
+
+//     switch (type) {
+//       // case 'label': {
+//       //   this.td.classList.add('cell');
+//       //   this.td.innerText = expense[key].toString();
+//       //   break;
+//       // }
+//       case 'money': {
+//         const input = document.createElement('input');
+//         input.classList.add('cell');
+//         input.value = formatMoney(/**@type {*}*/(expense[key]));
+//         this.td.append(input);
+//         break;
+//       }
+//       case 'percent': {
+//         break;
+//       }
+//       case 'string': {
+//         break;
+//       }
+//     }
+
+//     expense.tr.append(this.td);
+//   }
+// }
+
 class Expense {
   constructor(/** @type {ExpenseData=} */ data) {
     this.name = data?.name ?? 'Unnamed bill';
@@ -14,6 +80,25 @@ class Expense {
 
     this.tr = document.createElement('tr');
     expenseRowsEl.append(this.tr);
+
+    this.nameCell = new InputCell({
+      get: () => this.name,
+      set: (str) => doAction(new EditAction(this, 'name', str)),
+    });
+
+    this.amountCell = new InputCell({
+      get: () => formatMoney(this.amount),
+      set: (str) => doAction(new EditAction(this, 'amount', parseMoney(str))),
+    });
+
+    this.tr.append(
+      this.nameCell.td,
+      this.amountCell.td,
+    );
+  }
+
+  set(/** @type {keyof this} */key, /** @type {any} */val) {
+    this[key] = val;
   }
 
   toPay() {
@@ -38,9 +123,6 @@ class Expense {
     };
   }
 }
-
-const newLocal = new Expense();
-newLocal.toPay
 
 /** @type {Expense[]} */
 const expenses = [];
@@ -103,7 +185,7 @@ function parseMoney(/** @type {string} */ amount) {
 }
 
 function addExpense() {
-  expenses.push(new Expense());
+  doAction(new AddExpenseAction());
 }
 
 window.addEventListener('keydown', (e) => {
@@ -155,6 +237,45 @@ class ChangeBalanceAction {
     balances[this.key] = this.newVal;
     this.el.value = formatMoney(balances[this.key]);
     blink(this.el);
+  }
+}
+
+class AddExpenseAction {
+  constructor() {
+    this.expense = new Expense();
+  }
+
+  undo() {
+    expenses.splice(expenses.length - 1);
+    expenseRowsEl.removeChild(this.expense.tr);
+  }
+
+  redo() {
+    expenses.push(this.expense);
+    expenseRowsEl.append(this.expense.tr);
+    blink(this.expense.tr);
+  }
+}
+
+class EditAction {
+  /**
+   * @param {Expense}       expense
+   * @param {keyof Expense} key
+   * @param {string|number} newVal
+   */
+  constructor(expense, key, newVal) {
+    this.expense = expense;
+    this.key = key;
+    this.oldVal = /**@type {string|number}*/(expense[key]);
+    this.newVal = newVal;
+  }
+
+  undo() {
+    this.expense.set(this.key, this.oldVal);
+  }
+
+  redo() {
+    this.expense.set(this.key, this.newVal);
   }
 }
 
