@@ -176,8 +176,8 @@ const expenses = [];
 
 let balances = {
   amount: 0,
-  toPay: 0,
   due: 0,
+  toPay: 0,
 };
 
 /**
@@ -209,9 +209,15 @@ function newFile() {
     expense.tr.remove();
   }
   expenses.length = 0;
+
+  setupBalances({
+    amount: 0,
+    due: 0,
+    toPay: 0,
+  });
 }
 
-/**
+/**s
  * @param {typeof balances} data
  */
 function setupBalances(data) {
