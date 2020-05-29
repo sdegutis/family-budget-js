@@ -1,0 +1,40 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  background: #f3f3f3;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 10pt;
+}
+
+table {
+  white-space: nowrap;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+th {
+  text-align: left;
+}
+
+td,
+th {
+  border: 1px solid #aaa;
+  background: #fff;
+  width: 100px;
+  min-width: 100px;
+}
+
+.cell {
+  padding: 5px;
+}
+
+input {
+  width: 100%;
+  padding: 5px;
+  outline: none;
+  border: none;
+}
