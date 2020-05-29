@@ -1,5 +1,6 @@
 const electron = require('electron');
 const path = require('path');
+const fs = require('fs');
 
 let isClean = true;
 electron.ipcMain.on('isClean', (event, data) => isClean = data);
@@ -12,6 +13,9 @@ electron.app.whenReady().then(() => {
       preload: path.join(__dirname, 'preload.js'),
     },
   });
+
+  /** @type {string} */
+  let file = null;
 
   mainWindow.loadFile('index.html');
 
@@ -32,6 +36,16 @@ electron.app.whenReady().then(() => {
 
   const openFile = () => {
     if (nevermind("open another file")) return;
+
+    const files = electron.dialog.showOpenDialogSync(mainWindow, {});
+    if (!files) return;
+
+    file = files[0];
+    isClean = true;
+
+    const json = JSON.parse(fs.readFileSync(file, 'utf-8'));
+
+    mainWindow.webContents.send('OpenFile', json);
   };
 
   const saveFile = () => {

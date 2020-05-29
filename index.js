@@ -199,6 +199,10 @@ function isClean() {
   return actions[nextAction - 1].id === cleanActionId;
 }
 
+function openFile(/** @type {FileData} */json) {
+  // json.expenses.forEach(j => j.space);
+}
+
 function newFile() {
   actions.length = 0;
   nextAction = 0;
@@ -371,6 +375,10 @@ class Space {
 
     this.tr.append(td);
   }
+
+  serialize() {
+    return { space: true };
+  }
 }
 
 class AddSpaceAction {
@@ -454,3 +462,18 @@ function blink(/** @type {HTMLElement} */el) {
 
 /** @type {(channel: string, data: any) => void} */
 var sendToBackend;
+
+/**
+ * @typedef FileData
+ * @property {object[]} expenses
+ * @property {string}   expenses.name
+ * @property {number}   expenses.amount
+ * @property {number}   expenses.payPercent
+ * @property {number}   expenses.paidPercent
+ * @property {string}   expenses.usuallyDue
+ * @property {boolean}  expenses.space
+ * @property {object}   balances
+ * @property {number}   balances.amount
+ * @property {number}   balances.toPay
+ * @property {number}   balances.due
+ */
