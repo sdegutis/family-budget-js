@@ -199,10 +199,23 @@ function isClean() {
   return actions[nextAction - 1].id === cleanActionId;
 }
 
-function openFile(/** @type {FileData} */json) {
-  newFile();
-  setupBalances(json.balances);
+function resetUndoStack() {
+  actions.length = 0;
+  nextAction = 0;
+  nextActionId = 0;
+  cleanActionId = 0;
+}
 
+function resetExpenses() {
+  for (const expense of expenses) {
+    expense.tr.remove();
+  }
+  expenses.length = 0;
+}
+
+function openFile(/** @type {FileData} */json) {
+  setupBalances(json.balances);
+  resetExpenses();
   for (const data of json.expenses) {
     if (data.space) {
       doAction(new AddExpenseAction(new Space()));
@@ -211,24 +224,13 @@ function openFile(/** @type {FileData} */json) {
       doAction(new AddExpenseAction(new Expense(data)));
     }
   }
+  resetUndoStack();
 }
 
 function newFile() {
-  actions.length = 0;
-  nextAction = 0;
-  nextActionId = 0;
-  cleanActionId = 0;
-
-  for (const expense of expenses) {
-    expense.tr.remove();
-  }
-  expenses.length = 0;
-
-  setupBalances({
-    amount: 0,
-    due: 0,
-    toPay: 0,
-  });
+  resetExpenses();
+  setupBalances({ amount: 0, due: 0, toPay: 0 });
+  resetUndoStack();
 }
 
 /**s
@@ -384,7 +386,7 @@ class Space {
     const td = document.createElement('td');
     td.innerHTML = '&nbsp;';
     td.colSpan = 8;
-    td.className = 'empty';
+    td.className = 'empty cell';
 
     this.tr.append(td);
   }

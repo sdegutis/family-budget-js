@@ -16,8 +16,20 @@ table {
   table-layout: fixed;
 }
 
-thead tr td {
+thead tr th {
   position: sticky;
+  top: 0;
+  border: none;
+}
+
+thead tr th::after {
+  position: absolute;
+  content: "";
+  left: 0;
+  top: 100%;
+  width: 100%;
+  height: 1px;
+  background: #aaa;
 }
 
 th {
@@ -36,7 +48,7 @@ th {
   background: #f0f0f0;
 }
 
-.cell {
+.cell:not(.empty) {
   padding: 5px;
 }
 
