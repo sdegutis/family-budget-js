@@ -155,6 +155,20 @@ class Expense {
     );
   }
 
+  add() {
+    expenses.push(this);
+    expenseRowsEl.append(this.tr);
+  }
+
+  remove() {
+    expenses.splice(expenses.length - 1);
+    expenseRowsEl.removeChild(this.tr);
+  }
+
+  blink() {
+    blink(this.tr);
+  }
+
   serialize() {
     return {
       name: this.nameCell.value,
@@ -167,11 +181,13 @@ class Expense {
 }
 
 /**
- * @typedef ExpenseLike
- * @property {HTMLTableRowElement} tr
+ * @typedef Item
+ * @property {() => void} add
+ * @property {() => void} remove
+ * @property {() => void} blink
  */
 
-/** @type {ExpenseLike[]} */
+/** @type {Item[]} */
 const expenses = [];
 
 let balances = {
@@ -208,29 +224,28 @@ function resetUndoStack() {
 
 function resetExpenses() {
   for (const expense of expenses) {
-    expense.tr.remove();
+    expense.remove();
   }
   expenses.length = 0;
 }
 
 function openFile(/** @type {FileData} */json) {
+  newFile();
   setupBalances(json.balances);
-  resetExpenses();
   for (const data of json.expenses) {
     if (data.space) {
-      doAction(new AddExpenseAction(new Space()));
+      new Space().add();
     }
     else {
-      doAction(new AddExpenseAction(new Expense(data)));
+      new Expense(data).add();
     }
   }
-  resetUndoStack();
 }
 
 function newFile() {
+  resetUndoStack();
   resetExpenses();
   setupBalances({ amount: 0, due: 0, toPay: 0 });
-  resetUndoStack();
 }
 
 /**s
@@ -296,11 +311,11 @@ function parsePercent(/** @type {string} */ amount) {
 }
 
 function addExpense() {
-  doAction(new AddExpenseAction(new Expense));
+  doAction(new AddItemAction(new Expense()));
 }
 
 function addSpace() {
-  doAction(new AddSpaceAction());
+  doAction(new AddItemAction(new Space()));
 }
 
 window.addEventListener('keydown', (e) => {
@@ -358,24 +373,22 @@ class ChangeBalanceAction {
   }
 }
 
-class AddExpenseAction {
+class AddItemAction {
   /**
-   * @param {ExpenseLike} expense
+   * @param {Item} item
    */
-  constructor(expense) {
+  constructor(item) {
     this.id = makeActionId();
-    this.expense = expense;
+    this.item = item;
   }
 
   undo() {
-    expenses.splice(expenses.length - 1);
-    expenseRowsEl.removeChild(this.expense.tr);
+    this.item.remove();
   }
 
   redo() {
-    expenses.push(this.expense);
-    expenseRowsEl.append(this.expense.tr);
-    blink(this.expense.tr);
+    this.item.add();
+    this.item.blink();
   }
 }
 
@@ -394,23 +407,19 @@ class Space {
   serialize() {
     return { space: true };
   }
-}
 
-class AddSpaceAction {
-  constructor() {
-    this.id = makeActionId();
-    this.space = new Space();
+  add() {
+    expenses.push(this);
+    expenseRowsEl.append(this.tr);
   }
 
-  undo() {
+  remove() {
     expenses.splice(expenses.length - 1);
-    expenseRowsEl.removeChild(this.space.tr);
+    expenseRowsEl.removeChild(this.tr);
   }
 
-  redo() {
-    expenses.push(this.space);
-    expenseRowsEl.append(this.space.tr);
-    blink(this.space.tr);
+  blink() {
+    blink(this.tr);
   }
 }
 
