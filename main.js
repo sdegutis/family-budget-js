@@ -18,6 +18,9 @@ electron.app.whenReady().then(() => {
   electron.ipcMain.on('isClean', (event, arg1) => isClean = arg1);
   electron.ipcMain.on('changedData', (event, arg1) => data = arg1);
 
+  electron.ipcMain.on('toggleDevTools', (event, arg1) => mainWindow.webContents.toggleDevTools());
+  electron.ipcMain.on('reload', (event, arg1) => mainWindow.reload());
+
   mainWindow.loadFile('index.html');
 
   const nevermind = (/** @type {string} */action) => {
@@ -74,9 +77,6 @@ electron.app.whenReady().then(() => {
         { type: 'separator' },
         { label: '&Save', accelerator: 'Ctrl+S', click: saveFile },
         { label: 'Save &As', click: saveAsFile },
-        { type: 'separator' },
-        { role: 'toggleDevTools' },
-        { role: 'reload' },
         { type: 'separator' },
         { label: 'E&xit', click: exit },
       ],

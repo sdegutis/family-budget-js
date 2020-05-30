@@ -318,8 +318,10 @@ function addSpace() {
 }
 
 window.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); }
-  if (e.ctrlKey && e.key === 'y') { e.preventDefault(); redo(); }
+  if (e.ctrlKey && !e.altKey && e.key === 'z') { e.preventDefault(); undo(); }
+  if (e.ctrlKey && !e.altKey && e.key === 'y') { e.preventDefault(); redo(); }
+  if (!e.ctrlKey && !e.altKey && e.key === 'F5') { e.preventDefault(); sendToBackend('reload'); }
+  if (!e.ctrlKey && !e.altKey && e.key === 'F12') { e.preventDefault(); sendToBackend('toggleDevTools'); }
 });
 
 function undo() {
@@ -483,7 +485,7 @@ function blink(/** @type {HTMLElement} */el) {
  * @property {Effected} effects
  */
 
-/** @type {(channel: string, data: any) => void} */
+/** @type {(channel: string, data?: any) => void} */
 var sendToBackend;
 
 /**
