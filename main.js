@@ -2,9 +2,6 @@ const electron = require('electron');
 const path = require('path');
 const fs = require('fs');
 
-let isClean = true;
-electron.ipcMain.on('isClean', (event, data) => isClean = data);
-
 electron.app.whenReady().then(() => {
   const mainWindow = new electron.BrowserWindow({
     width: 800,
@@ -14,8 +11,12 @@ electron.app.whenReady().then(() => {
     },
   });
 
-  /** @type {string} */
-  let file = null;
+  let file = /** @type {string} */(null);
+  let isClean = true;
+  let data = null;
+
+  electron.ipcMain.on('isClean', (event, arg1) => isClean = arg1);
+  electron.ipcMain.on('changedData', (event, arg1) => data = arg1);
 
   mainWindow.loadFile('index.html');
 

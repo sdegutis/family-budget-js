@@ -1,14 +1,6 @@
 const electron = require('electron');
 
-/**
- * @param {string} channel
- * @param {any}    data
- */
-function send(channel, data) {
-  electron.ipcRenderer.send(channel, data);
-}
-
-/** @type {*} */(global).sendToBackend = send;
+/** @type {*} */(global).sendToBackend = electron.ipcRenderer.send;
 
 electron.ipcRenderer.on('AddExpense', (event) => addExpense());
 electron.ipcRenderer.on('AddSpace', (event) => addSpace());
