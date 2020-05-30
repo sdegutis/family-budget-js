@@ -198,20 +198,14 @@ let balances = {
 
 class UndoStack {
   constructor() {
-    /** @type {Action[]} */
-    this.actions = [];
+    this.actions = /** @type {Action[]} */([]);
     this.nextAction = 0;
-    this.nextActionId = 0;
-    this.cleanActionId = 0;
-  }
-
-  makeActionId() {
-    return ++this.nextActionId;
+    this.cleanAction = /** @type {Action} */(null);
   }
 
   isClean() {
-    if (this.nextAction === 0) return this.cleanActionId === 0;
-    return this.actions[this.nextAction - 1].id === this.cleanActionId;
+    if (this.nextAction === 0) return this.cleanAction === null;
+    return this.actions[this.nextAction - 1] === this.cleanAction;
   }
 
   undo() {
@@ -349,7 +343,6 @@ class ChangeBalanceAction {
    * @param {number} newVal
    */
   constructor(el, key, newVal) {
-    this.id = undoStack.makeActionId();
     this.el = el;
     this.key = key;
     this.newVal = newVal;
@@ -374,7 +367,6 @@ class AddItemAction {
    * @param {Item} item
    */
   constructor(item) {
-    this.id = undoStack.makeActionId();
     this.item = item;
   }
 
@@ -426,7 +418,6 @@ class EditAction {
    * @param {any}        newVal
    */
   constructor(cell, oldVal, newVal) {
-    this.id = undoStack.makeActionId();
     this.cell = cell;
     this.oldVal = oldVal;
     this.newVal = newVal;
@@ -500,7 +491,6 @@ var sendToBackend;
 
 /**
  * @typedef Action
- * @property {number}     id
  * @property {() => void} undo
  * @property {() => void} redo
  */
