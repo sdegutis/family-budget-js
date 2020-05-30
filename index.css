@@ -21,29 +21,13 @@ input {
   font: inherit;
 }
 
-thead tr th {
-  position: sticky;
-  top: 0;
-  border: none;
-}
-
-thead tr th::after {
-  position: absolute;
-  content: "";
-  left: 0;
-  top: 100%;
-  width: 100%;
-  height: 1px;
-  background: #aaa;
-}
-
 th {
   text-align: left;
 }
 
 td,
 th {
-  border: 1px solid #aaa;
+  border: 1px solid #ddd;
   background: #fff;
   width: 100%;
 }
@@ -85,6 +69,8 @@ input {
   border: none;
 }
 
-input:focus {
-  background: #17f3;
+td.focused {
+  border-color: blue;
+  border-style: double;
+  /* background: #17f3; */
 }
