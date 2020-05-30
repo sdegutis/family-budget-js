@@ -66,7 +66,7 @@ class InputCell {
       if (e.keyCode === 13) {
         const newVal = parse(this.input.value);
         if (this.value !== newVal) {
-          doAction(new EditAction(this, this.value, newVal));
+          undoStack.doAction(new EditAction(this, this.value, newVal));
           this.input.blur();
         }
       }
@@ -196,31 +196,49 @@ let balances = {
   toPay: 0,
 };
 
-/**
- * @typedef Action
- * @property {number}     id
- * @property {() => void} undo
- * @property {() => void} redo
- */
+class UndoStack {
+  constructor() {
+    /** @type {Action[]} */
+    this.actions = [];
+    this.nextAction = 0;
+    this.nextActionId = 0;
+    this.cleanActionId = 0;
+  }
 
-/** @type {Action[]} */
-const actions = [];
-let nextAction = 0;
-let nextActionId = 0;
-let makeActionId = () => ++nextActionId;
-let cleanActionId = 0;
+  makeActionId() {
+    return ++this.nextActionId;
+  }
 
-function isClean() {
-  if (nextAction === 0) return cleanActionId === 0;
-  return actions[nextAction - 1].id === cleanActionId;
+  isClean() {
+    if (this.nextAction === 0) return this.cleanActionId === 0;
+    return this.actions[this.nextAction - 1].id === this.cleanActionId;
+  }
+
+  undo() {
+    if (this.nextAction === 0) return;
+    const action = this.actions[--this.nextAction];
+    action.undo();
+    sendToBackend('isClean', this.isClean());
+  }
+
+  redo() {
+    if (this.nextAction === this.actions.length) return;
+    const action = this.actions[this.nextAction++];
+    action.redo();
+    sendToBackend('isClean', this.isClean());
+  }
+
+  doAction(/** @type {Action} */ action) {
+    if (this.nextAction < this.actions.length) {
+      this.actions.splice(this.nextAction);
+    }
+
+    this.actions.push(action);
+    this.redo();
+  }
 }
 
-function resetUndoStack() {
-  actions.length = 0;
-  nextAction = 0;
-  nextActionId = 0;
-  cleanActionId = 0;
-}
+let undoStack = new UndoStack();
 
 function resetExpenses() {
   for (const expense of [...expenses]) {
@@ -242,7 +260,7 @@ function openFile(/** @type {FileData} */json) {
 }
 
 function newFile() {
-  resetUndoStack();
+  undoStack = new UndoStack();
   resetExpenses();
   setupBalances({ amount: 0, due: 0, toPay: 0 });
 }
@@ -283,7 +301,7 @@ function setupChangeBalance(el, key) {
     if (e.keyCode === 13) {
       const newVal = parseMoney(el.value);
       if (balances[key] !== newVal) {
-        doAction(new ChangeBalanceAction(el, key, newVal));
+        undoStack.doAction(new ChangeBalanceAction(el, key, newVal));
         el.blur();
       }
     }
@@ -310,42 +328,19 @@ function parsePercent(/** @type {string} */ amount) {
 }
 
 function addExpense() {
-  doAction(new AddItemAction(new Expense()));
+  undoStack.doAction(new AddItemAction(new Expense()));
 }
 
 function addSpace() {
-  doAction(new AddItemAction(new Space()));
+  undoStack.doAction(new AddItemAction(new Space()));
 }
 
 window.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && !e.altKey && e.key === 'z') { e.preventDefault(); undo(); }
-  if (e.ctrlKey && !e.altKey && e.key === 'y') { e.preventDefault(); redo(); }
+  if (e.ctrlKey && !e.altKey && e.key === 'z') { e.preventDefault(); undoStack.undo(); }
+  if (e.ctrlKey && !e.altKey && e.key === 'y') { e.preventDefault(); undoStack.redo(); }
   if (!e.ctrlKey && !e.altKey && e.key === 'F5') { e.preventDefault(); sendToBackend('reload'); }
   if (!e.ctrlKey && !e.altKey && e.key === 'F12') { e.preventDefault(); sendToBackend('toggleDevTools'); }
 });
-
-function undo() {
-  if (nextAction === 0) return;
-  const action = actions[--nextAction];
-  action.undo();
-  sendToBackend('isClean', isClean());
-}
-
-function redo() {
-  if (nextAction === actions.length) return;
-  const action = actions[nextAction++];
-  action.redo();
-  sendToBackend('isClean', isClean());
-}
-
-function doAction(/** @type {Action} */ action) {
-  if (nextAction < actions.length) {
-    actions.splice(nextAction);
-  }
-
-  actions.push(action);
-  redo();
-}
 
 class ChangeBalanceAction {
   /**
@@ -354,7 +349,7 @@ class ChangeBalanceAction {
    * @param {number} newVal
    */
   constructor(el, key, newVal) {
-    this.id = makeActionId();
+    this.id = undoStack.makeActionId();
     this.el = el;
     this.key = key;
     this.newVal = newVal;
@@ -379,7 +374,7 @@ class AddItemAction {
    * @param {Item} item
    */
   constructor(item) {
-    this.id = makeActionId();
+    this.id = undoStack.makeActionId();
     this.item = item;
   }
 
@@ -431,7 +426,7 @@ class EditAction {
    * @param {any}        newVal
    */
   constructor(cell, oldVal, newVal) {
-    this.id = makeActionId();
+    this.id = undoStack.makeActionId();
     this.cell = cell;
     this.oldVal = oldVal;
     this.newVal = newVal;
@@ -501,4 +496,11 @@ var sendToBackend;
  * @property {number}   balances.amount
  * @property {number}   balances.toPay
  * @property {number}   balances.due
+ */
+
+/**
+ * @typedef Action
+ * @property {number}     id
+ * @property {() => void} undo
+ * @property {() => void} redo
  */
