@@ -223,10 +223,9 @@ function resetUndoStack() {
 }
 
 function resetExpenses() {
-  for (const expense of expenses) {
+  for (const expense of [...expenses]) {
     expense.remove();
   }
-  expenses.length = 0;
 }
 
 function openFile(/** @type {FileData} */json) {
