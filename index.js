@@ -1,7 +1,6 @@
 const balanceAmountEl = /**@type HTMLInputElement*/(document.getElementById('balanceAmount'));
 const balanceToPayEl = /**@type HTMLInputElement*/(document.getElementById('balanceToPay'));
 const balanceDueEl = /**@type HTMLInputElement*/(document.getElementById('balanceDue'));
-
 const expenseRowsEl = /**@type HTMLTableSectionElement*/(document.getElementById('expenseRows'));
 
 class CalculatedCell {
@@ -180,21 +179,36 @@ class Expense {
   }
 }
 
-/**
- * @typedef Item
- * @property {() => void} add
- * @property {() => void} remove
- * @property {() => void} blink
- */
+class Space {
+  constructor() {
+    this.tr = document.createElement('tr');
 
-/** @type {Item[]} */
-const expenses = [];
+    const td = document.createElement('td');
+    td.innerHTML = '&nbsp;';
+    td.colSpan = 8;
+    td.className = 'empty cell';
 
-let balances = {
-  amount: 0,
-  due: 0,
-  toPay: 0,
-};
+    this.tr.append(td);
+  }
+
+  serialize() {
+    return { space: true };
+  }
+
+  add() {
+    expenses.push(this);
+    expenseRowsEl.append(this.tr);
+  }
+
+  remove() {
+    expenses.splice(expenses.length - 1);
+    expenseRowsEl.removeChild(this.tr);
+  }
+
+  blink() {
+    blink(this.tr);
+  }
+}
 
 class UndoStack {
   constructor() {
@@ -231,6 +245,15 @@ class UndoStack {
     this.redo();
   }
 }
+
+/** @type {Item[]} */
+const expenses = [];
+
+let balances = {
+  amount: 0,
+  due: 0,
+  toPay: 0,
+};
 
 let undoStack = new UndoStack();
 
@@ -380,37 +403,6 @@ class AddItemAction {
   }
 }
 
-class Space {
-  constructor() {
-    this.tr = document.createElement('tr');
-
-    const td = document.createElement('td');
-    td.innerHTML = '&nbsp;';
-    td.colSpan = 8;
-    td.className = 'empty cell';
-
-    this.tr.append(td);
-  }
-
-  serialize() {
-    return { space: true };
-  }
-
-  add() {
-    expenses.push(this);
-    expenseRowsEl.append(this.tr);
-  }
-
-  remove() {
-    expenses.splice(expenses.length - 1);
-    expenseRowsEl.removeChild(this.tr);
-  }
-
-  blink() {
-    blink(this.tr);
-  }
-}
-
 class EditAction {
   /**
    * @param {InputCell}  cell
@@ -471,9 +463,6 @@ function blink(/** @type {HTMLElement} */el) {
  * @property {Effected} effects
  */
 
-/** @type {(channel: string, data?: any) => void} */
-var sendToBackend;
-
 /**
  * @typedef FileData
  * @property {object[]} expenses
@@ -494,3 +483,13 @@ var sendToBackend;
  * @property {() => void} undo
  * @property {() => void} redo
  */
+
+/**
+ * @typedef Item
+ * @property {() => void} add
+ * @property {() => void} remove
+ * @property {() => void} blink
+ */
+
+/** @type {(channel: string, data?: any) => void} */
+var sendToBackend;
