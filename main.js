@@ -16,13 +16,13 @@ electron.app.whenReady().then(() => {
   let isClean = true;
   let data = null;
 
-  electron.ipcMain.on('isClean', (event, arg1) => {
-    isClean = arg1;
+  const setClean = (/**@type {boolean}*/arg) => {
+    isClean = arg;
     mainWindow.title = 'Family Budget' + (isClean ? '' : ' •');
-  });
+  };
 
+  electron.ipcMain.on('isClean', (event, arg1) => setClean(arg1));
   electron.ipcMain.on('changedData', (event, arg1) => data = arg1);
-
   electron.ipcMain.on('toggleDevTools', (event, arg1) => mainWindow.webContents.toggleDevTools());
   electron.ipcMain.on('reload', (event, arg1) => mainWindow.reload());
 
@@ -39,7 +39,7 @@ electron.app.whenReady().then(() => {
 
   const newFile = () => {
     if (nevermind("start a new file")) return;
-    isClean = true;
+    setClean(true);
     mainWindow.webContents.send('NewFile');
   };
 
@@ -50,7 +50,7 @@ electron.app.whenReady().then(() => {
     if (!files) return;
 
     file = files[0];
-    isClean = true;
+    setClean(true);
 
     const json = JSON.parse(fs.readFileSync(file, 'utf-8'));
 

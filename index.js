@@ -9,11 +9,8 @@ class CalculatedCell {
    * @param {() => any}            opts.get
    * @param {(val: any) => string} opts.format
    * @param {Dependencies[]}       opts.dependsOn
-   * @param {Budget}               opts.budget
    */
-  constructor({ get, format, dependsOn, budget }) {
-    this.budget = budget;
-
+  constructor({ get, format, dependsOn }) {
     for (const dep of dependsOn) {
       dep.effects = this;
     }
@@ -128,7 +125,6 @@ class Expense {
     });
 
     this.toPayCell = new CalculatedCell({
-      budget,
       get: () => this.amountCell.value * this.payPercentCell.value,
       format: formatMoney,
       dependsOn: [this.amountCell, this.payPercentCell],
@@ -142,7 +138,6 @@ class Expense {
     });
 
     this.dueCell = new CalculatedCell({
-      budget,
       get: () => this.toPayCell.value - (this.toPayCell.value * this.paidPercentCell.value),
       format: formatMoney,
       dependsOn: [this.toPayCell, this.paidPercentCell],
@@ -156,7 +151,6 @@ class Expense {
     });
 
     this.actuallyDueCell = new CalculatedCell({
-      budget,
       get: () => this.dueCell.value === 0 ? '-' : this.usuallyDueCell.value,
       format: formatMoney,
       dependsOn: [this.dueCell, this.usuallyDueCell],
@@ -236,7 +230,12 @@ class Space {
 }
 
 class UndoStack {
-  constructor() {
+
+  /**
+   * @param {Budget} budget
+   */
+  constructor(budget) {
+    this.budget = budget;
     this.actions = /** @type {Action[]} */([]);
     this.nextAction = 0;
     this.cleanAction = /** @type {Action} */(null);
@@ -252,6 +251,8 @@ class UndoStack {
     const action = this.actions[--this.nextAction];
     action.undo();
     sendToBackend('isClean', this.isClean());
+
+    this.budget.totals.refresh();
   }
 
   redo() {
@@ -259,6 +260,8 @@ class UndoStack {
     const action = this.actions[this.nextAction++];
     action.redo();
     sendToBackend('isClean', this.isClean());
+
+    this.budget.totals.refresh();
   }
 
   doAction(/** @type {Action} */ action) {
@@ -268,6 +271,8 @@ class UndoStack {
 
     this.actions.push(action);
     this.redo();
+
+    this.budget.totals.refresh();
   }
 }
 
@@ -285,42 +290,66 @@ class Totals {
       return el;
     };
 
-    this.amountCell = new InputCell({
+    this.balanceAmountCell = new InputCell({
       budget,
       initial: data?.amount ?? 0,
       format: formatMoney,
       parse: parseMoney,
     });
 
-    this.toPayCell = new InputCell({
+    this.balanceToPayCell = new InputCell({
       budget,
       initial: data?.toPay ?? 0,
       format: formatMoney,
       parse: parseMoney,
     });
 
-    this.dueCell = new InputCell({
+    this.balanceDueCell = new InputCell({
       budget,
       initial: data?.due ?? 0,
       format: formatMoney,
       parse: parseMoney,
     });
 
+    this.totalAmountCell = new CalculatedCell({
+      get: () => budget?.expenses?.reduce((a, b) => (b instanceof Expense
+        ? a + b.amountCell.value
+        : a), 0) ?? '',
+      format: formatMoney,
+      dependsOn: [],
+    });
+
+    this.totalToPayCell = new CalculatedCell({
+      get: () => budget?.expenses?.reduce((a, b) => (b instanceof Expense
+        ? a + b.toPayCell.value
+        : a), 0) ?? '',
+      format: formatMoney,
+      dependsOn: [],
+    });
+
+    this.totalDueCell = new CalculatedCell({
+      get: () => budget?.expenses?.reduce((a, b) => (b instanceof Expense
+        ? a + b.dueCell.value
+        : a), 0) ?? '',
+      format: formatMoney,
+      dependsOn: [],
+    });
+
     totalRowEl.append(newCell('th', 'Total'));
+    totalRowEl.append(this.totalAmountCell.td);
     totalRowEl.append(newCell('td', ''));
+    totalRowEl.append(this.totalToPayCell.td);
     totalRowEl.append(newCell('td', ''));
-    totalRowEl.append(newCell('td', ''));
-    totalRowEl.append(newCell('td', ''));
-    totalRowEl.append(newCell('td', ''));
+    totalRowEl.append(this.totalDueCell.td);
     totalRowEl.append(newCell('td', ''));
     totalRowEl.append(newCell('td', ''));
 
     balanceRowEl.append(newCell('th', 'Balance'));
-    balanceRowEl.append(this.amountCell.td);
+    balanceRowEl.append(this.balanceAmountCell.td);
     balanceRowEl.append(newCell('td', ''));
-    balanceRowEl.append(this.toPayCell.td);
+    balanceRowEl.append(this.balanceToPayCell.td);
     balanceRowEl.append(newCell('td', ''));
-    balanceRowEl.append(this.dueCell.td);
+    balanceRowEl.append(this.balanceDueCell.td);
     balanceRowEl.append(newCell('td', ''));
     balanceRowEl.append(newCell('td', ''));
 
@@ -332,6 +361,10 @@ class Totals {
     remainderRowEl.append(newCell('td', ''));
     remainderRowEl.append(newCell('td', ''));
     remainderRowEl.append(newCell('td', ''));
+  }
+
+  refresh() {
+    this.totalAmountCell.refresh();
   }
 
   dispose() {
@@ -347,7 +380,7 @@ class Budget {
    * @param {FileData=} data
    */
   constructor(data) {
-    this.undoStack = new UndoStack();
+    this.undoStack = new UndoStack(this);
     this.totals = new Totals(this, data?.balances);
     this.expenses = /** @type {Item[]} */([]);
 
@@ -359,6 +392,8 @@ class Budget {
         new Expense(this, expenseData).add();
       }
     }
+
+    this.totals.refresh();
   }
 
   dispose() {
