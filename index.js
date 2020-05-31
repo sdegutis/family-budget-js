@@ -330,6 +330,7 @@ function resetExpenses() {
 
 function openFile(/** @type {FileData} */json) {
   newFile();
+  totals.dispose();
   totals = new Totals(json.balances);
   for (const data of json.expenses) {
     if (data.space) {
@@ -343,6 +344,7 @@ function openFile(/** @type {FileData} */json) {
 
 function newFile() {
   undoStack = new UndoStack();
+  totals.dispose();
   totals = new Totals();
   resetExpenses();
 }
