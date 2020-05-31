@@ -16,24 +16,18 @@ electron.app.whenReady().then(() => {
   let isClean = true;
   let data = /** @type {any} */(null);
 
-  const setClean = (/**@type {boolean}*/arg) => {
-    isClean = arg;
+  electron.ipcMain.on('isClean', (event, arg1) => {
+    isClean = arg1;
     mainWindow.title = 'Family Budget' + (isClean ? '' : ' •');
-  };
-
-  electron.ipcMain.on('isClean', (event, arg1) => setClean(arg1));
-  electron.ipcMain.on('changedData', (event, arg1) => {
-    data = arg1;
   });
+
+  electron.ipcMain.on('changedData', (event, arg1) => data = arg1);
   electron.ipcMain.on('toggleDevTools', (event, arg1) => mainWindow.webContents.toggleDevTools());
   electron.ipcMain.on('reload', (event, arg1) => mainWindow.reload());
 
   electron.ipcMain.on('showMenu', (event, x, y, i) => {
     electron.Menu.buildFromTemplate([
-      {
-        label: 'Delete',
-        click() { mainWindow.webContents.send('DeleteItem', i); }
-      }
+      { label: 'Delete', click() { mainWindow.webContents.send('DeleteItem', i); } },
     ]).popup({ window: mainWindow, x, y });
   });
 
