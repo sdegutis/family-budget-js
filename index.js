@@ -93,13 +93,30 @@ class InputCell {
 class Expense {
   /**
    * @param {Budget}       budget
-   * @param {ExpenseData=} data
+   * @param {FileData['expenses'][0]=} data
    */
   constructor(budget, data) {
     this.budget = budget;
 
     this.tr = document.createElement('tr');
     expenseRowsEl.append(this.tr);
+
+    // setTimeout(() => {
+    this.tr.setAttribute('draggable', 'true');
+    this.tr.ondragstart = (e) => {
+      e.preventDefault();
+      console.log('dragging');
+      // e.dataTransfer.setData('row', budget.expenses.indexOf(this).toString());
+    };
+
+    // this.tr.ondragover = (e) => {
+    //   // if (e.dataTransfer.getData('row')) {
+    //   e.preventDefault();
+    //   console.log('over');
+    //   // console.log(e.dataTransfer.getData('row'));
+    //   // }
+    // };
+    // }, 100);
 
     this.tr.oncontextmenu = (e) => {
       e.preventDefault();
@@ -586,15 +603,6 @@ function blink(/** @type {HTMLElement} */el) {
     clearChange();
   };
 }
-
-/**
- * @typedef ExpenseData
- * @property {string} name
- * @property {number} amount
- * @property {number} payPercent
- * @property {number} paidPercent
- * @property {string} usuallyDue
- */
 
 /**
  * @typedef Effected
