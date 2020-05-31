@@ -4,6 +4,7 @@ const fs = require('fs');
 
 electron.app.whenReady().then(() => {
   const mainWindow = new electron.BrowserWindow({
+    title: 'Family Budget',
     width: 800,
     height: 600,
     webPreferences: {
@@ -15,7 +16,11 @@ electron.app.whenReady().then(() => {
   let isClean = true;
   let data = null;
 
-  electron.ipcMain.on('isClean', (event, arg1) => isClean = arg1);
+  electron.ipcMain.on('isClean', (event, arg1) => {
+    isClean = arg1;
+    mainWindow.title = 'Family Budget' + (isClean ? '' : ' •');
+  });
+
   electron.ipcMain.on('changedData', (event, arg1) => data = arg1);
 
   electron.ipcMain.on('toggleDevTools', (event, arg1) => mainWindow.webContents.toggleDevTools());
