@@ -54,7 +54,12 @@ class InputCell {
 
     this.input.value = format(this.value);
 
+    this.input.onfocus = () => {
+      this.td.classList.add('focused');
+    };
+
     this.input.onblur = () => {
+      this.td.classList.remove('focused');
       this.input.value = format(this.value);
       this.input.blur();
     };
@@ -102,9 +107,11 @@ class Item {
     this.tr.draggable = true;
     this.tr.ondragstart = (e) => {
       budget.dragging = this;
+      budget.dragging.tr.classList.add('dragging');
     };
 
     this.tr.ondragend = () => {
+      budget.dragging?.tr.classList.remove('dragging');
       budget.dragging = null;
 
       budget.dropping?.tr.classList.remove('dropping');
@@ -548,6 +555,28 @@ class RemoveItemAction {
   constructor(item, index) {
     this.item = item;
     this.index = index;
+  }
+
+  undo() {
+    this.item.add(this.index);
+    this.item.blink();
+  }
+
+  redo() {
+    this.item.remove();
+  }
+}
+
+class MoveItemAction {
+  /**
+   * @param {Item}   item
+   * @param {number} from
+   * @param {number} to
+   */
+  constructor(item, from, to) {
+    this.item = item;
+    this.from = from;
+    this.to = to;
   }
 
   undo() {

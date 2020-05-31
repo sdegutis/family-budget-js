@@ -19,7 +19,7 @@ table {
 
 input {
   font: inherit;
-  background: #17f2;
+  /* background: #17f2; */
 }
 
 th {
@@ -63,7 +63,11 @@ tr.changed .cell {
   animation: blinker 1s ease-in-out;
 }
 
-tr.dropping td {
+tr.dragging .cell {
+  background: #99f;
+}
+
+tr.dropping .cell {
   background: #9f9;
 }
 
