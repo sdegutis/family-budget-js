@@ -246,9 +246,6 @@ class UndoStack {
   }
 }
 
-/** @type {Item[]} */
-const expenses = [];
-
 class Totals {
 
   /**
@@ -298,6 +295,9 @@ class Totals {
 
 let undoStack = new UndoStack();
 let totals = new Totals();
+
+/** @type {Item[]} */
+const expenses = [];
 
 function resetExpenses() {
   for (const expense of [...expenses]) {
