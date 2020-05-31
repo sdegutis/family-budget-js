@@ -345,12 +345,27 @@ class Totals {
     balanceRowEl.append(newCell('td', ''));
     balanceRowEl.append(newCell('td', ''));
 
+    this.remainderAmountCell = new CalculatedCell({
+      get: () => this.balanceAmountCell.value - this.totalAmountCell.value,
+      dependsOn: [this.totalAmountCell, this.balanceAmountCell],
+    });
+
+    this.remainderToPayCell = new CalculatedCell({
+      get: () => this.balanceToPayCell.value - this.totalToPayCell.value,
+      dependsOn: [this.totalToPayCell, this.balanceToPayCell],
+    });
+
+    this.remainderDueCell = new CalculatedCell({
+      get: () => this.balanceDueCell.value - this.totalDueCell.value,
+      dependsOn: [this.totalDueCell, this.balanceDueCell],
+    });
+
     remainderRowEl.append(newCell('th', 'Remainder'));
+    remainderRowEl.append(this.remainderAmountCell.td);
     remainderRowEl.append(newCell('td', ''));
+    remainderRowEl.append(this.remainderToPayCell.td);
     remainderRowEl.append(newCell('td', ''));
-    remainderRowEl.append(newCell('td', ''));
-    remainderRowEl.append(newCell('td', ''));
-    remainderRowEl.append(newCell('td', ''));
+    remainderRowEl.append(this.remainderDueCell.td);
     remainderRowEl.append(newCell('td', ''));
     remainderRowEl.append(newCell('td', ''));
   }
@@ -359,6 +374,10 @@ class Totals {
     this.totalAmountCell.refresh();
     this.totalToPayCell.refresh();
     this.totalDueCell.refresh();
+
+    this.remainderAmountCell.refresh();
+    this.remainderToPayCell.refresh();
+    this.remainderDueCell.refresh();
   }
 
   dispose() {
