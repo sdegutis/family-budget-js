@@ -249,13 +249,55 @@ class UndoStack {
 /** @type {Item[]} */
 const expenses = [];
 
-let balances = {
-  amount: 0,
-  due: 0,
-  toPay: 0,
-};
+class Totals {
+
+  /**
+   * @param {Balances=} data
+   */
+  constructor(data) {
+    this.balances = {
+      amount: data?.amount ?? 0,
+      due: data?.due ?? 0,
+      toPay: data?.toPay ?? 0,
+    };
+
+    balanceAmountEl.value = formatMoney(this.balances.amount);
+    balanceToPayEl.value = formatMoney(this.balances.toPay);
+    balanceDueEl.value = formatMoney(this.balances.due);
+
+    this.setupChangeBalance(balanceAmountEl, 'amount');
+    this.setupChangeBalance(balanceToPayEl, 'toPay');
+    this.setupChangeBalance(balanceDueEl, 'due');
+  }
+
+  /**
+   * @param {HTMLInputElement} el
+   * @param {keyof Balances} key
+   */
+  setupChangeBalance(el, key) {
+    function cancel() {
+      el.value = formatMoney(totals.balances[key]);
+      el.blur();
+    }
+
+    el.onblur = (e) => cancel();
+    el.onkeydown = (e) => {
+      if (e.keyCode === 13) {
+        const newVal = parseMoney(el.value);
+        if (totals.balances[key] !== newVal) {
+          undoStack.doAction(new ChangeBalanceAction(el, key, newVal));
+          el.blur();
+        }
+      }
+      else if (e.keyCode === 27) {
+        cancel();
+      }
+    };
+  }
+}
 
 let undoStack = new UndoStack();
+let totals = new Totals();
 
 function resetExpenses() {
   for (const expense of [...expenses]) {
@@ -265,7 +307,7 @@ function resetExpenses() {
 
 function openFile(/** @type {FileData} */json) {
   newFile();
-  setupBalances(json.balances);
+  totals = new Totals(json.balances);
   for (const data of json.expenses) {
     if (data.space) {
       new Space().add();
@@ -278,54 +320,8 @@ function openFile(/** @type {FileData} */json) {
 
 function newFile() {
   undoStack = new UndoStack();
+  totals = new Totals();
   resetExpenses();
-  setupBalances({ amount: 0, due: 0, toPay: 0 });
-}
-
-/**s
- * @param {typeof balances} data
- */
-function setupBalances(data) {
-  balances = data;
-
-  balanceAmountEl.value = formatMoney(balances.amount);
-  balanceToPayEl.value = formatMoney(balances.toPay);
-  balanceDueEl.value = formatMoney(balances.due);
-}
-
-setupBalances({
-  amount: 0,
-  due: 0,
-  toPay: 0,
-});
-
-setupChangeBalance(balanceAmountEl, 'amount');
-setupChangeBalance(balanceToPayEl, 'toPay');
-setupChangeBalance(balanceDueEl, 'due');
-
-/**
- * @param {HTMLInputElement} el
- * @param {keyof balances} key
- */
-function setupChangeBalance(el, key) {
-  function cancel() {
-    el.value = formatMoney(balances[key]);
-    el.blur();
-  }
-
-  el.onblur = (e) => cancel();
-  el.onkeydown = (e) => {
-    if (e.keyCode === 13) {
-      const newVal = parseMoney(el.value);
-      if (balances[key] !== newVal) {
-        undoStack.doAction(new ChangeBalanceAction(el, key, newVal));
-        el.blur();
-      }
-    }
-    else if (e.keyCode === 27) {
-      cancel();
-    }
-  };
 }
 
 function formatMoney(/** @type {number} */ amount) {
@@ -362,25 +358,25 @@ window.addEventListener('keydown', (e) => {
 class ChangeBalanceAction {
   /**
    * @param {HTMLInputElement} el
-   * @param {keyof balances} key
+   * @param {keyof Balances} key
    * @param {number} newVal
    */
   constructor(el, key, newVal) {
     this.el = el;
     this.key = key;
     this.newVal = newVal;
-    this.oldVal = balances[key];
+    this.oldVal = totals.balances[key];
   }
 
   undo() {
-    balances[this.key] = this.oldVal;
-    this.el.value = formatMoney(balances[this.key]);
+    totals.balances[this.key] = this.oldVal;
+    this.el.value = formatMoney(totals.balances[this.key]);
     blink(this.el);
   }
 
   redo() {
-    balances[this.key] = this.newVal;
-    this.el.value = formatMoney(balances[this.key]);
+    totals.balances[this.key] = this.newVal;
+    this.el.value = formatMoney(totals.balances[this.key]);
     blink(this.el);
   }
 }
@@ -489,6 +485,13 @@ function blink(/** @type {HTMLElement} */el) {
  * @property {() => void} add
  * @property {() => void} remove
  * @property {() => void} blink
+ */
+
+/**
+ * @typedef Balances
+ * @property {number} amount
+ * @property {number} due
+ * @property {number} toPay
  */
 
 /** @type {(channel: string, data?: any) => void} */
