@@ -99,13 +99,17 @@ class Item {
     this.budget = budget;
     this.tr = document.createElement('tr');
 
+    const dragCell = newCell('td', '⸬');
+    this.tr.append(dragCell);
+    this.setupDrag(dragCell);
+
     this.tr.oncontextmenu = (e) => {
       e.preventDefault();
       sendToBackend('showMenu', e.clientX, e.clientY, budget.items.indexOf(this));
     };
   }
 
-  // only for inheritors
+  // private
   setupDrag(/** @type {HTMLElement} */ dragHandle) {
     dragHandle.draggable = true;
     dragHandle.ondragstart = (e) => {
@@ -217,11 +221,7 @@ class Expense extends Item {
       dependsOn: [this.dueCell, this.usuallyDueCell],
     });
 
-    this.dragCell = newCell('td', '');
-    this.setupDrag(this.dragCell);
-
     this.tr.append(
-      this.dragCell,
       this.nameCell.td,
       this.amountCell.td,
       this.payPercentCell.td,
@@ -253,10 +253,8 @@ class Space extends Item {
 
     const td = document.createElement('td');
     td.innerHTML = '&nbsp;';
-    td.colSpan = 9;
+    td.colSpan = 8;
     td.className = 'empty cell';
-
-    this.setupDrag(td);
 
     this.tr.append(td);
   }

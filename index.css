@@ -35,6 +35,9 @@ th {
 
 tr > *:first-child {
   width: 20px;
+  text-align: center;
+  color: #999;
+  background: #eee;
 }
 
 tr > *:nth-child(2) {
@@ -67,11 +70,11 @@ tr.changed .cell {
 }
 
 tr.dragging .cell {
-  background: #99f;
+  background: #e1ecff;
 }
 
 tr.dropping .cell {
-  background: #9f9;
+  background: #ddffe7;
 }
 
 input {
