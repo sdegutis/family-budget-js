@@ -90,18 +90,49 @@ class InputCell {
   }
 }
 
-class Expense {
+class Item {
+
+  /**
+  * @param {Budget} budget
+  */
+  constructor(budget) {
+    this.budget = budget;
+    this.tr = document.createElement('tr');
+
+    this.tr.oncontextmenu = (e) => {
+      e.preventDefault();
+      sendToBackend('showMenu', e.clientX, e.clientY, budget.expenses.indexOf(this));
+    };
+  }
+
+  serialize() {
+    throw new Error("Method not implemented.");
+  }
+
+  add(/** @type {number=} */ index) {
+    if (index === undefined) index = this.budget.expenses.length;
+    this.budget.expenses.splice(index, 0, this);
+    expenseRowsEl.insertBefore(this.tr, expenseRowsEl.children[index]);
+  }
+
+  remove() {
+    this.budget.expenses.splice(this.budget.expenses.indexOf(this), 1);
+    expenseRowsEl.removeChild(this.tr);
+  }
+
+  blink() {
+    blink(this.tr);
+  }
+}
+
+class Expense extends Item {
   /**
    * @param {Budget}       budget
    * @param {ExpenseData=} data
    */
   constructor(budget, data) {
-    this.budget = budget;
+    super(budget);
 
-    this.tr = document.createElement('tr');
-    expenseRowsEl.append(this.tr);
-
-    // setTimeout(() => {
     this.tr.setAttribute('draggable', 'true');
     this.tr.ondragstart = (e) => {
       e.preventDefault();
@@ -116,12 +147,6 @@ class Expense {
     //   // console.log(e.dataTransfer.getData('row'));
     //   // }
     // };
-    // }, 100);
-
-    this.tr.oncontextmenu = (e) => {
-      e.preventDefault();
-      sendToBackend('showMenu', e.clientX, e.clientY, budget.expenses.indexOf(this));
-    };
 
     this.nameCell = new InputCell({
       budget,
@@ -185,21 +210,6 @@ class Expense {
     );
   }
 
-  add(/** @type {number=} */ index) {
-    if (index === undefined) index = this.budget.expenses.length;
-    this.budget.expenses.splice(index, 0, this);
-    expenseRowsEl.insertBefore(this.tr, expenseRowsEl.children[index]);
-  }
-
-  remove() {
-    this.budget.expenses.splice(this.budget.expenses.indexOf(this), 1);
-    expenseRowsEl.removeChild(this.tr);
-  }
-
-  blink() {
-    blink(this.tr);
-  }
-
   serialize() {
     return {
       name: this.nameCell.value,
@@ -211,19 +221,12 @@ class Expense {
   }
 }
 
-class Space {
+class Space extends Item {
   /**
    * @param {Budget} budget
    */
   constructor(budget) {
-    this.budget = budget;
-
-    this.tr = document.createElement('tr');
-
-    this.tr.oncontextmenu = (e) => {
-      e.preventDefault();
-      sendToBackend('showMenu', e.clientX, e.clientY, budget.expenses.indexOf(this));
-    };
+    super(budget);
 
     const td = document.createElement('td');
     td.innerHTML = '&nbsp;';
@@ -235,21 +238,6 @@ class Space {
 
   serialize() {
     return { space: true };
-  }
-
-  add(/** @type {number=} */ index) {
-    if (index === undefined) index = this.budget.expenses.length;
-    this.budget.expenses.splice(index, 0, this);
-    expenseRowsEl.insertBefore(this.tr, expenseRowsEl.children[index]);
-  }
-
-  remove() {
-    this.budget.expenses.splice(this.budget.expenses.indexOf(this), 1);
-    expenseRowsEl.removeChild(this.tr);
-  }
-
-  blink() {
-    blink(this.tr);
   }
 }
 
@@ -641,14 +629,6 @@ function blink(/** @type {HTMLElement} */el) {
  * @typedef Action
  * @property {() => void} undo
  * @property {() => void} redo
- */
-
-/**
- * @typedef Item
- * @property {(n?: number) => void} add
- * @property {() => void} remove
- * @property {() => void} blink
- * @property {() => any}  serialize
  */
 
 /** @type {(channel: string, ...data: any) => void} */
