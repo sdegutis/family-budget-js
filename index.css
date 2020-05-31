@@ -37,7 +37,7 @@ td:first-child {
   width: 150%;
 }
 
-.empty {
+.empty:not(.cell) {
   background: #f0f0f0;
 }
 
