@@ -7,8 +7,8 @@
     <meta content="default-src 'self'" http-equiv="Content-Security-Policy">
   </head>
   <body>
-    <table>
-      <thead>
+    <div>
+      <table>
         <tr>
           <th class="cell"></th>
           <th class="cell">Expense</th>
@@ -20,14 +20,18 @@
           <th class="cell">Usually Due</th>
           <th class="cell">Actually Due</th>
         </tr>
-      </thead>
-      <tbody id="expenseRows"></tbody>
-      <tfoot>
+      </table>
+    </div>
+    <div>
+      <table id="expenseRows"></table>
+    </div>
+    <div>
+      <table>
         <tr id="totalRow"></tr>
         <tr id="balanceRow"></tr>
         <tr id="remainderRow"></tr>
-      </tfoot>
-    </table>
+      </table>
+    </div>
     <script src="index.js"></script>
   </body>
 </html>

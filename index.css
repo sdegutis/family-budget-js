@@ -10,6 +10,25 @@ html {
   font-size: 12px;
 }
 
+body {
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  width: 700px;
+  overflow: hidden;
+  overflow-x: overlay;
+}
+
+body::-webkit-scrollbar,
+body > div::-webkit-scrollbar {
+  display: none;
+}
+
+body > div {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 table {
   white-space: nowrap;
   border-collapse: collapse;
