@@ -27,10 +27,7 @@ class CalculatedCell {
   refresh() {
     this.value = this.get();
     this.td.innerText = formatMoney(this.value);
-
-    if (this.effects) {
-      this.effects.refresh();
-    }
+    this.effects?.refresh();
   }
 }
 
@@ -84,9 +81,7 @@ class InputCell {
     this.input.value = this.format(this.value);
     blink(this.input);
 
-    if (this.effects) {
-      this.effects.refresh();
-    }
+    this.effects?.refresh();
   }
 }
 
