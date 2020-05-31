@@ -286,23 +286,23 @@ class Totals {
     };
 
     this.totalAmountCell = new CalculatedCell({
-      get: () => budget?.expenses?.reduce((a, b) => (b instanceof Expense
+      get: () => budget.expenses.reduce((a, b) => (b instanceof Expense
         ? a + b.amountCell.value
-        : a), 0) ?? '',
+        : a), 0),
       dependsOn: [],
     });
 
     this.totalToPayCell = new CalculatedCell({
-      get: () => budget?.expenses?.reduce((a, b) => (b instanceof Expense
+      get: () => budget.expenses.reduce((a, b) => (b instanceof Expense
         ? a + b.toPayCell.value
-        : a), 0) ?? '',
+        : a), 0),
       dependsOn: [],
     });
 
     this.totalDueCell = new CalculatedCell({
-      get: () => budget?.expenses?.reduce((a, b) => (b instanceof Expense
+      get: () => budget.expenses.reduce((a, b) => (b instanceof Expense
         ? a + b.dueCell.value
-        : a), 0) ?? '',
+        : a), 0),
       dependsOn: [],
     });
 
@@ -357,6 +357,8 @@ class Totals {
 
   refresh() {
     this.totalAmountCell.refresh();
+    this.totalToPayCell.refresh();
+    this.totalDueCell.refresh();
   }
 
   dispose() {
@@ -373,8 +375,8 @@ class Budget {
    */
   constructor(data) {
     this.undoStack = new UndoStack(this);
-    this.totals = new Totals(this, data?.balances);
     this.expenses = /** @type {Item[]} */([]);
+    this.totals = new Totals(this, data?.balances);
 
     for (const expenseData of data?.expenses || []) {
       if (expenseData.space) {
