@@ -103,33 +103,39 @@ class Item {
       e.preventDefault();
       sendToBackend('showMenu', e.clientX, e.clientY, budget.items.indexOf(this));
     };
+  }
 
-    this.tr.draggable = true;
-    this.tr.ondragstart = (e) => {
-      budget.dragging = this;
-      budget.dragging.tr.classList.add('dragging');
+  // only for inheritors
+  setupDrag(/** @type {HTMLElement} */ dragHandle) {
+    dragHandle.draggable = true;
+    dragHandle.ondragstart = (e) => {
+      this.budget.dragging = this;
+      this.budget.dragging.tr.classList.add('dragging');
     };
 
-    this.tr.ondragend = () => {
-      budget.dragging?.tr.classList.remove('dragging');
-      budget.dragging = null;
+    dragHandle.ondragend = () => {
+      this.budget.dragging?.tr.classList.remove('dragging');
+      this.budget.dragging = null;
 
-      budget.dropping?.tr.classList.remove('dropping');
-      budget.dropping = null;
+      this.budget.dropping?.tr.classList.remove('dropping');
+      this.budget.dropping = null;
     };
 
     this.tr.ondragover = (e) => {
-      if (budget.dragging !== this) {
-        budget.dropping?.tr.classList.remove('dropping');
-        budget.dropping = this;
-        budget.dropping.tr.classList.add('dropping');
+      if (this.budget.dragging !== this) {
+        this.budget.dropping?.tr.classList.remove('dropping');
+        this.budget.dropping = this;
+        this.budget.dropping.tr.classList.add('dropping');
 
         e.preventDefault();
       }
     };
 
     this.tr.ondrop = (e) => {
-      console.log(budget.items.indexOf(budget.dragging), budget.items.indexOf(budget.dropping));
+      console.log(
+        this.budget.items.indexOf(this.budget.dragging),
+        this.budget.items.indexOf(this.budget.dropping)
+      );
     };
   }
 
@@ -211,7 +217,11 @@ class Expense extends Item {
       dependsOn: [this.dueCell, this.usuallyDueCell],
     });
 
+    this.dragCell = newCell('td', '');
+    this.setupDrag(this.dragCell);
+
     this.tr.append(
+      this.dragCell,
       this.nameCell.td,
       this.amountCell.td,
       this.payPercentCell.td,
@@ -243,8 +253,10 @@ class Space extends Item {
 
     const td = document.createElement('td');
     td.innerHTML = '&nbsp;';
-    td.colSpan = 8;
+    td.colSpan = 9;
     td.className = 'empty cell';
+
+    this.setupDrag(td);
 
     this.tr.append(td);
   }
@@ -318,13 +330,6 @@ class Totals {
    * @param {BalanceData=} data
    */
   constructor(budget, data) {
-    const newCell = (/** @type {string} */ type, /** @type {string} */ text) => {
-      const el = document.createElement(type);
-      el.className = 'cell';
-      el.innerText = text;
-      return el;
-    };
-
     this.totalAmountCell = new CalculatedCell({
       get: () => budget.items.reduce((a, b) => (b instanceof Expense
         ? a + b.amountCell.value
@@ -346,6 +351,7 @@ class Totals {
       dependsOn: [],
     });
 
+    totalRowEl.append(newCell('td', ''));
     totalRowEl.append(newCell('th', 'Total'));
     totalRowEl.append(this.totalAmountCell.td);
     totalRowEl.append(newCell('td', ''));
@@ -376,6 +382,7 @@ class Totals {
       parse: parseMoney,
     });
 
+    balanceRowEl.append(newCell('td', ''));
     balanceRowEl.append(newCell('th', 'Balance'));
     balanceRowEl.append(this.balanceAmountCell.td);
     balanceRowEl.append(newCell('td', ''));
@@ -400,6 +407,7 @@ class Totals {
       dependsOn: [this.totalDueCell, this.balanceDueCell],
     });
 
+    remainderRowEl.append(newCell('td', ''));
     remainderRowEl.append(newCell('th', 'Remainder'));
     remainderRowEl.append(this.remainderAmountCell.td);
     remainderRowEl.append(newCell('td', ''));
@@ -522,6 +530,13 @@ function addSpace() {
   currentBudget.undoStack.doAction(new AddItemAction(new Space(currentBudget)));
 }
 
+function newCell(/** @type {string} */ type, /** @type {string} */ text) {
+  const el = document.createElement(type);
+  el.className = 'cell';
+  el.innerText = text;
+  return el;
+}
+
 window.addEventListener('keydown', (e) => {
   if (e.ctrlKey && !e.altKey && e.key === 'z') { e.preventDefault(); currentBudget.undoStack.undo(); }
   if (e.ctrlKey && !e.altKey && e.key === 'y') { e.preventDefault(); currentBudget.undoStack.redo(); }
@@ -580,7 +595,7 @@ class MoveItemAction {
   }
 
   undo() {
-    this.item.add(this.index);
+    // this.item.add(this.index);
     this.item.blink();
   }
 

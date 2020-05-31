@@ -33,8 +33,11 @@ th {
   width: 100%;
 }
 
-th:first-child,
-td:first-child {
+tr > *:first-child {
+  width: 20px;
+}
+
+tr > *:nth-child(2) {
   width: 150%;
 }
 
