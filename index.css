@@ -63,6 +63,10 @@ tr.changed .cell {
   animation: blinker 1s ease-in-out;
 }
 
+tr.dropping td {
+  background: #9f9;
+}
+
 input {
   width: 100%;
   padding: 5px;

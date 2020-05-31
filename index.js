@@ -103,6 +103,32 @@ class Item {
       e.preventDefault();
       sendToBackend('showMenu', e.clientX, e.clientY, budget.items.indexOf(this));
     };
+
+    this.tr.draggable = true;
+    this.tr.ondragstart = (e) => {
+      budget.dragging = this;
+    };
+
+    this.tr.ondragend = () => {
+      budget.dragging = null;
+
+      budget.dropping?.tr.classList.remove('dropping');
+      budget.dropping = null;
+    };
+
+    this.tr.ondragover = (e) => {
+      if (budget.dragging !== this) {
+        budget.dropping?.tr.classList.remove('dropping');
+        budget.dropping = this;
+        budget.dropping.tr.classList.add('dropping');
+
+        e.preventDefault();
+      }
+    };
+
+    this.tr.ondrop = (e) => {
+      console.log(budget.items.indexOf(budget.dragging), budget.items.indexOf(budget.dropping));
+    };
   }
 
   serialize() {
@@ -132,21 +158,6 @@ class Expense extends Item {
    */
   constructor(budget, data) {
     super(budget);
-
-    this.tr.setAttribute('draggable', 'true');
-    this.tr.ondragstart = (e) => {
-      e.preventDefault();
-      console.log('dragging');
-      // e.dataTransfer.setData('row', budget.expenses.indexOf(this).toString());
-    };
-
-    // this.tr.ondragover = (e) => {
-    //   // if (e.dataTransfer.getData('row')) {
-    //   e.preventDefault();
-    //   console.log('over');
-    //   // console.log(e.dataTransfer.getData('row'));
-    //   // }
-    // };
 
     this.nameCell = new InputCell({
       budget,
@@ -428,6 +439,9 @@ class Budget {
    * @param {FileData=} data
    */
   constructor(data) {
+    this.dragging = /** @type {Item} */(null);
+    this.dropping = /** @type {Item} */(null);
+
     this.undoStack = new UndoStack(this);
     this.items = /** @type {Item[]} */([]);
     this.totals = new Totals(this, data?.balances);
