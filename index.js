@@ -7,10 +7,9 @@ class CalculatedCell {
   /**
    * @param {object}               opts
    * @param {() => any}            opts.get
-   * @param {(val: any) => string} opts.format
    * @param {Dependencies[]}       opts.dependsOn
    */
-  constructor({ get, format, dependsOn }) {
+  constructor({ get, dependsOn }) {
     for (const dep of dependsOn) {
       dep.effects = this;
     }
@@ -19,7 +18,6 @@ class CalculatedCell {
     this.effects = null;
 
     this.get = get;
-    this.format = format;
 
     this.td = document.createElement('td');
     this.td.classList.add('cell');
@@ -28,7 +26,7 @@ class CalculatedCell {
 
   refresh() {
     this.value = this.get();
-    this.td.innerText = this.format(this.value);
+    this.td.innerText = formatMoney(this.value);
 
     if (this.effects) {
       this.effects.refresh();
@@ -126,7 +124,6 @@ class Expense {
 
     this.toPayCell = new CalculatedCell({
       get: () => this.amountCell.value * this.payPercentCell.value,
-      format: formatMoney,
       dependsOn: [this.amountCell, this.payPercentCell],
     });
 
@@ -139,7 +136,6 @@ class Expense {
 
     this.dueCell = new CalculatedCell({
       get: () => this.toPayCell.value - (this.toPayCell.value * this.paidPercentCell.value),
-      format: formatMoney,
       dependsOn: [this.toPayCell, this.paidPercentCell],
     });
 
@@ -152,7 +148,6 @@ class Expense {
 
     this.actuallyDueCell = new CalculatedCell({
       get: () => this.dueCell.value === 0 ? '-' : this.usuallyDueCell.value,
-      format: formatMoney,
       dependsOn: [this.dueCell, this.usuallyDueCell],
     });
 
@@ -290,6 +285,36 @@ class Totals {
       return el;
     };
 
+    this.totalAmountCell = new CalculatedCell({
+      get: () => budget?.expenses?.reduce((a, b) => (b instanceof Expense
+        ? a + b.amountCell.value
+        : a), 0) ?? '',
+      dependsOn: [],
+    });
+
+    this.totalToPayCell = new CalculatedCell({
+      get: () => budget?.expenses?.reduce((a, b) => (b instanceof Expense
+        ? a + b.toPayCell.value
+        : a), 0) ?? '',
+      dependsOn: [],
+    });
+
+    this.totalDueCell = new CalculatedCell({
+      get: () => budget?.expenses?.reduce((a, b) => (b instanceof Expense
+        ? a + b.dueCell.value
+        : a), 0) ?? '',
+      dependsOn: [],
+    });
+
+    totalRowEl.append(newCell('th', 'Total'));
+    totalRowEl.append(this.totalAmountCell.td);
+    totalRowEl.append(newCell('td', ''));
+    totalRowEl.append(this.totalToPayCell.td);
+    totalRowEl.append(newCell('td', ''));
+    totalRowEl.append(this.totalDueCell.td);
+    totalRowEl.append(newCell('td', ''));
+    totalRowEl.append(newCell('td', ''));
+
     this.balanceAmountCell = new InputCell({
       budget,
       initial: data?.amount ?? 0,
@@ -310,39 +335,6 @@ class Totals {
       format: formatMoney,
       parse: parseMoney,
     });
-
-    this.totalAmountCell = new CalculatedCell({
-      get: () => budget?.expenses?.reduce((a, b) => (b instanceof Expense
-        ? a + b.amountCell.value
-        : a), 0) ?? '',
-      format: formatMoney,
-      dependsOn: [],
-    });
-
-    this.totalToPayCell = new CalculatedCell({
-      get: () => budget?.expenses?.reduce((a, b) => (b instanceof Expense
-        ? a + b.toPayCell.value
-        : a), 0) ?? '',
-      format: formatMoney,
-      dependsOn: [],
-    });
-
-    this.totalDueCell = new CalculatedCell({
-      get: () => budget?.expenses?.reduce((a, b) => (b instanceof Expense
-        ? a + b.dueCell.value
-        : a), 0) ?? '',
-      format: formatMoney,
-      dependsOn: [],
-    });
-
-    totalRowEl.append(newCell('th', 'Total'));
-    totalRowEl.append(this.totalAmountCell.td);
-    totalRowEl.append(newCell('td', ''));
-    totalRowEl.append(this.totalToPayCell.td);
-    totalRowEl.append(newCell('td', ''));
-    totalRowEl.append(this.totalDueCell.td);
-    totalRowEl.append(newCell('td', ''));
-    totalRowEl.append(newCell('td', ''));
 
     balanceRowEl.append(newCell('th', 'Balance'));
     balanceRowEl.append(this.balanceAmountCell.td);
