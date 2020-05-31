@@ -101,7 +101,7 @@ class Item {
 
     this.tr.oncontextmenu = (e) => {
       e.preventDefault();
-      sendToBackend('showMenu', e.clientX, e.clientY, budget.expenses.indexOf(this));
+      sendToBackend('showMenu', e.clientX, e.clientY, budget.items.indexOf(this));
     };
   }
 
@@ -110,13 +110,13 @@ class Item {
   }
 
   add(/** @type {number=} */ index) {
-    if (index === undefined) index = this.budget.expenses.length;
-    this.budget.expenses.splice(index, 0, this);
+    if (index === undefined) index = this.budget.items.length;
+    this.budget.items.splice(index, 0, this);
     expenseRowsEl.insertBefore(this.tr, expenseRowsEl.children[index]);
   }
 
   remove() {
-    this.budget.expenses.splice(this.budget.expenses.indexOf(this), 1);
+    this.budget.items.splice(this.budget.items.indexOf(this), 1);
     expenseRowsEl.removeChild(this.tr);
   }
 
@@ -313,21 +313,21 @@ class Totals {
     };
 
     this.totalAmountCell = new CalculatedCell({
-      get: () => budget.expenses.reduce((a, b) => (b instanceof Expense
+      get: () => budget.items.reduce((a, b) => (b instanceof Expense
         ? a + b.amountCell.value
         : a), 0),
       dependsOn: [],
     });
 
     this.totalToPayCell = new CalculatedCell({
-      get: () => budget.expenses.reduce((a, b) => (b instanceof Expense
+      get: () => budget.items.reduce((a, b) => (b instanceof Expense
         ? a + b.toPayCell.value
         : a), 0),
       dependsOn: [],
     });
 
     this.totalDueCell = new CalculatedCell({
-      get: () => budget.expenses.reduce((a, b) => (b instanceof Expense
+      get: () => budget.items.reduce((a, b) => (b instanceof Expense
         ? a + b.dueCell.value
         : a), 0),
       dependsOn: [],
@@ -429,7 +429,7 @@ class Budget {
    */
   constructor(data) {
     this.undoStack = new UndoStack(this);
-    this.expenses = /** @type {Item[]} */([]);
+    this.items = /** @type {Item[]} */([]);
     this.totals = new Totals(this, data?.balances);
 
     for (const expenseData of data?.expenses || []) {
@@ -448,18 +448,18 @@ class Budget {
   updateBackendData() {
     sendToBackend('isClean', this.undoStack.isClean());
     sendToBackend('changedData', {
-      expenses: this.expenses.map(e => e.serialize()),
+      expenses: this.items.map(e => e.serialize()),
       balances: this.totals.serialize(),
     });
   }
 
   deleteItem(/** @type {number} */index) {
-    this.undoStack.doAction(new RemoveItemAction(this.expenses[index], index));
+    this.undoStack.doAction(new RemoveItemAction(this.items[index], index));
   }
 
   dispose() {
     this.totals.dispose();
-    for (const expense of [...this.expenses]) {
+    for (const expense of [...this.items]) {
       expense.remove();
     }
   }
