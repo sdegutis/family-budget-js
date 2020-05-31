@@ -137,10 +137,10 @@ class Item {
     };
 
     this.tr.ondrop = (e) => {
-      console.log(
+      this.budget.undoStack.doAction(new MoveItemAction(
         this.budget.items.indexOf(this.budget.dragging),
         this.budget.items.indexOf(this.budget.dropping)
-      );
+      ));
     };
   }
 
@@ -585,23 +585,26 @@ class RemoveItemAction {
 
 class MoveItemAction {
   /**
-   * @param {Item}   item
    * @param {number} from
    * @param {number} to
    */
-  constructor(item, from, to) {
-    this.item = item;
+  constructor(from, to) {
     this.from = from;
     this.to = to;
   }
 
   undo() {
-    // this.item.add(this.index);
-    this.item.blink();
+    const item = currentBudget.items[this.to];
+    currentBudget.items[this.to].remove();
+    item.add(this.from);
+    item.blink();
   }
 
   redo() {
-    this.item.remove();
+    const item = currentBudget.items[this.from];
+    currentBudget.items[this.from].remove();
+    item.add(this.to);
+    item.blink();
   }
 }
 
