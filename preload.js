@@ -4,7 +4,7 @@ const electron = require('electron');
 
 electron.ipcRenderer.on('AddExpense', (event) => addExpense());
 electron.ipcRenderer.on('AddSpace', (event) => addSpace());
-electron.ipcRenderer.on('Undo', (event) => undoStack.undo());
-electron.ipcRenderer.on('Redo', (event) => undoStack.redo());
+electron.ipcRenderer.on('Undo', (event) => budget.undoStack.undo());
+electron.ipcRenderer.on('Redo', (event) => budget.undoStack.redo());
 electron.ipcRenderer.on('NewFile', (event) => newFile());
 electron.ipcRenderer.on('OpenFile', (event, data) => openFile(data));

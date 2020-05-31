@@ -1,11 +1,7 @@
-// const balanceAmountEl = /**@type HTMLInputElement*/(document.getElementById('balanceAmount'));
-// const balanceToPayEl = /**@type HTMLInputElement*/(document.getElementById('balanceToPay'));
-// const balanceDueEl = /**@type HTMLInputElement*/(document.getElementById('balanceDue'));
-const expenseRowsEl = /**@type HTMLTableSectionElement*/(document.getElementById('expenseRows'));
-
 const totalRowEl = /**@type HTMLTableRowElement*/(document.getElementById('totalRow'));
 const balanceRowEl = /**@type HTMLTableRowElement*/(document.getElementById('balanceRow'));
 const remainderRowEl = /**@type HTMLTableRowElement*/(document.getElementById('remainderRow'));
+const expenseRowsEl = /**@type HTMLTableSectionElement*/(document.getElementById('expenseRows'));
 
 class CalculatedCell {
   /**
@@ -13,8 +9,11 @@ class CalculatedCell {
    * @param {() => any}            opts.get
    * @param {(val: any) => string} opts.format
    * @param {Dependencies[]}       opts.dependsOn
+   * @param {Budget}               opts.budget
    */
-  constructor({ get, format, dependsOn }) {
+  constructor({ get, format, dependsOn, budget }) {
+    this.budget = budget;
+
     for (const dep of dependsOn) {
       dep.effects = this;
     }
@@ -46,8 +45,11 @@ class InputCell {
    * @param {any}                  opts.initial
    * @param {(val: any) => string} opts.format
    * @param {(s: string) => any}   opts.parse
+   * @param {Budget}               opts.budget
    */
-  constructor({ initial, format, parse }) {
+  constructor({ initial, format, parse, budget }) {
+    this.budget = budget;
+
     /** @type {Effected} */
     this.effects = null;
 
@@ -69,7 +71,7 @@ class InputCell {
       if (e.keyCode === 13) {
         const newVal = parse(this.input.value);
         if (this.value !== newVal) {
-          undoStack.doAction(new EditAction(this, this.value, newVal));
+          budget.undoStack.doAction(new EditAction(this, this.value, newVal));
           this.input.blur();
         }
       }
@@ -94,53 +96,67 @@ class InputCell {
 }
 
 class Expense {
-  constructor(/** @type {ExpenseData=} */ data) {
+  /**
+   * @param {Budget}       budget
+   * @param {ExpenseData=} data
+   */
+  constructor(budget, data) {
+    this.budget = budget;
+
     this.tr = document.createElement('tr');
     expenseRowsEl.append(this.tr);
 
     this.nameCell = new InputCell({
+      budget,
       initial: data?.name ?? 'New Expense',
       format: s => s,
       parse: s => s,
     });
 
     this.amountCell = new InputCell({
+      budget,
       initial: data?.amount ?? 0,
       format: formatMoney,
       parse: parseMoney,
     });
 
     this.payPercentCell = new InputCell({
+      budget,
       initial: data?.payPercent ?? 1,
       format: formatPercent,
       parse: parsePercent,
     });
 
     this.toPayCell = new CalculatedCell({
+      budget,
       get: () => this.amountCell.value * this.payPercentCell.value,
       format: formatMoney,
       dependsOn: [this.amountCell, this.payPercentCell],
     });
 
     this.paidPercentCell = new InputCell({
+      budget,
       initial: data?.paidPercent ?? 0,
       format: formatPercent,
       parse: parsePercent,
     });
 
     this.dueCell = new CalculatedCell({
+      budget,
       get: () => this.toPayCell.value - (this.toPayCell.value * this.paidPercentCell.value),
       format: formatMoney,
       dependsOn: [this.toPayCell, this.paidPercentCell],
     });
 
     this.usuallyDueCell = new InputCell({
+      budget,
       initial: data?.usuallyDue ?? '',
       format: s => s,
       parse: s => s,
     });
 
     this.actuallyDueCell = new CalculatedCell({
+      budget,
       get: () => this.dueCell.value === 0 ? '-' : this.usuallyDueCell.value,
       format: formatMoney,
       dependsOn: [this.dueCell, this.usuallyDueCell],
@@ -159,12 +175,12 @@ class Expense {
   }
 
   add() {
-    expenses.push(this);
+    this.budget.expenses.push(this);
     expenseRowsEl.append(this.tr);
   }
 
   remove() {
-    expenses.splice(expenses.length - 1);
+    this.budget.expenses.splice(this.budget.expenses.indexOf(this), 1);
     expenseRowsEl.removeChild(this.tr);
   }
 
@@ -184,7 +200,12 @@ class Expense {
 }
 
 class Space {
-  constructor() {
+  /**
+   * @param {Budget} budget
+   */
+  constructor(budget) {
+    this.budget = budget;
+
     this.tr = document.createElement('tr');
 
     const td = document.createElement('td');
@@ -200,12 +221,12 @@ class Space {
   }
 
   add() {
-    expenses.push(this);
+    this.budget.expenses.push(this);
     expenseRowsEl.append(this.tr);
   }
 
   remove() {
-    expenses.splice(expenses.length - 1);
+    this.budget.expenses.splice(this.budget.expenses.indexOf(this), 1);
     expenseRowsEl.removeChild(this.tr);
   }
 
@@ -253,9 +274,10 @@ class UndoStack {
 class Totals {
 
   /**
+   * @param {Budget}                budget
    * @param {FileData['balances']=} data
    */
-  constructor(data) {
+  constructor(budget, data) {
     const newCell = (/** @type {string} */ type, /** @type {string} */ text) => {
       const el = document.createElement(type);
       el.className = 'cell';
@@ -264,18 +286,21 @@ class Totals {
     };
 
     this.amountCell = new InputCell({
+      budget,
       initial: data?.amount ?? 0,
       format: formatMoney,
       parse: parseMoney,
     });
 
     this.toPayCell = new InputCell({
+      budget,
       initial: data?.toPay ?? 0,
       format: formatMoney,
       parse: parseMoney,
     });
 
     this.dueCell = new InputCell({
+      budget,
       initial: data?.due ?? 0,
       format: formatMoney,
       parse: parseMoney,
@@ -316,37 +341,44 @@ class Totals {
   }
 }
 
-let undoStack = new UndoStack();
-let totals = new Totals();
+class Budget {
 
-/** @type {Item[]} */
-const expenses = [];
+  /**
+   * @param {FileData=} data
+   */
+  constructor(data) {
+    this.undoStack = new UndoStack();
+    this.totals = new Totals(this, data?.balances);
+    this.expenses = /** @type {Item[]} */([]);
 
-function resetExpenses() {
-  for (const expense of [...expenses]) {
-    expense.remove();
+    for (const expenseData of data?.expenses || []) {
+      if (expenseData.space) {
+        new Space(this).add();
+      }
+      else {
+        new Expense(this, expenseData).add();
+      }
+    }
+  }
+
+  dispose() {
+    this.totals.dispose();
+    for (const expense of [...this.expenses]) {
+      expense.remove();
+    }
   }
 }
 
+let currentBudget = new Budget();
+
 function openFile(/** @type {FileData} */json) {
-  newFile();
-  totals.dispose();
-  totals = new Totals(json.balances);
-  for (const data of json.expenses) {
-    if (data.space) {
-      new Space().add();
-    }
-    else {
-      new Expense(data).add();
-    }
-  }
+  currentBudget.dispose();
+  currentBudget = new Budget(json);
 }
 
 function newFile() {
-  undoStack = new UndoStack();
-  totals.dispose();
-  totals = new Totals();
-  resetExpenses();
+  currentBudget.dispose();
+  currentBudget = new Budget();
 }
 
 function formatMoney(/** @type {number} */ amount) {
@@ -366,16 +398,16 @@ function parsePercent(/** @type {string} */ amount) {
 }
 
 function addExpense() {
-  undoStack.doAction(new AddItemAction(new Expense()));
+  currentBudget.undoStack.doAction(new AddItemAction(new Expense(currentBudget)));
 }
 
 function addSpace() {
-  undoStack.doAction(new AddItemAction(new Space()));
+  currentBudget.undoStack.doAction(new AddItemAction(new Space(currentBudget)));
 }
 
 window.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && !e.altKey && e.key === 'z') { e.preventDefault(); undoStack.undo(); }
-  if (e.ctrlKey && !e.altKey && e.key === 'y') { e.preventDefault(); undoStack.redo(); }
+  if (e.ctrlKey && !e.altKey && e.key === 'z') { e.preventDefault(); currentBudget.undoStack.undo(); }
+  if (e.ctrlKey && !e.altKey && e.key === 'y') { e.preventDefault(); currentBudget.undoStack.redo(); }
   if (!e.ctrlKey && !e.altKey && e.key === 'F5') { e.preventDefault(); sendToBackend('reload'); }
   if (!e.ctrlKey && !e.altKey && e.key === 'F12') { e.preventDefault(); sendToBackend('toggleDevTools'); }
 });
