@@ -40,15 +40,15 @@ tr > *:first-child {
   background: #eee;
 }
 
+.draghandle {
+  cursor: grab;
+}
+
 tr > *:nth-child(2) {
   width: 150%;
 }
 
-.empty:not(.cell) {
-  background: #f0f0f0;
-}
-
-.cell:not(.empty) {
+.cell {
   padding: 3px;
 }
 

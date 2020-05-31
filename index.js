@@ -100,6 +100,7 @@ class Item {
     this.tr = document.createElement('tr');
 
     const dragCell = newCell('td', '⸬');
+    dragCell.classList.add('draghandle');
     this.tr.append(dragCell);
     this.setupDrag(dragCell);
 
@@ -251,12 +252,14 @@ class Space extends Item {
   constructor(budget) {
     super(budget);
 
-    const td = document.createElement('td');
-    td.innerHTML = '&nbsp;';
-    td.colSpan = 8;
-    td.className = 'empty cell';
-
-    this.tr.append(td);
+    this.tr.append(newCell('td', ''));
+    this.tr.append(newCell('td', ''));
+    this.tr.append(newCell('td', ''));
+    this.tr.append(newCell('td', ''));
+    this.tr.append(newCell('td', ''));
+    this.tr.append(newCell('td', ''));
+    this.tr.append(newCell('td', ''));
+    this.tr.append(newCell('td', ''));
   }
 
   serialize() {
