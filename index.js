@@ -1,7 +1,11 @@
-const balanceAmountEl = /**@type HTMLInputElement*/(document.getElementById('balanceAmount'));
-const balanceToPayEl = /**@type HTMLInputElement*/(document.getElementById('balanceToPay'));
-const balanceDueEl = /**@type HTMLInputElement*/(document.getElementById('balanceDue'));
+// const balanceAmountEl = /**@type HTMLInputElement*/(document.getElementById('balanceAmount'));
+// const balanceToPayEl = /**@type HTMLInputElement*/(document.getElementById('balanceToPay'));
+// const balanceDueEl = /**@type HTMLInputElement*/(document.getElementById('balanceDue'));
 const expenseRowsEl = /**@type HTMLTableSectionElement*/(document.getElementById('expenseRows'));
+
+const totalRowEl = /**@type HTMLTableRowElement*/(document.getElementById('totalRow'));
+const balanceRowEl = /**@type HTMLTableRowElement*/(document.getElementById('balanceRow'));
+const remainderRowEl = /**@type HTMLTableRowElement*/(document.getElementById('remainderRow'));
 
 class CalculatedCell {
   /**
@@ -249,47 +253,66 @@ class UndoStack {
 class Totals {
 
   /**
-   * @param {Balances=} data
+   * @param {FileData['balances']=} data
    */
   constructor(data) {
-    this.balances = {
-      amount: data?.amount ?? 0,
-      due: data?.due ?? 0,
-      toPay: data?.toPay ?? 0,
+    const newCell = (/** @type {string} */ type, /** @type {string} */ text) => {
+      const el = document.createElement(type);
+      el.className = 'cell';
+      el.innerText = text;
+      return el;
     };
 
-    balanceAmountEl.value = formatMoney(this.balances.amount);
-    balanceToPayEl.value = formatMoney(this.balances.toPay);
-    balanceDueEl.value = formatMoney(this.balances.due);
+    this.amountCell = new InputCell({
+      initial: data?.amount ?? 0,
+      format: formatMoney,
+      parse: parseMoney,
+    });
 
-    this.setupChangeBalance(balanceAmountEl, 'amount');
-    this.setupChangeBalance(balanceToPayEl, 'toPay');
-    this.setupChangeBalance(balanceDueEl, 'due');
+    this.toPayCell = new InputCell({
+      initial: data?.toPay ?? 0,
+      format: formatMoney,
+      parse: parseMoney,
+    });
+
+    this.dueCell = new InputCell({
+      initial: data?.due ?? 0,
+      format: formatMoney,
+      parse: parseMoney,
+    });
+
+    totalRowEl.append(newCell('th', 'Total'));
+    totalRowEl.append(newCell('td', ''));
+    totalRowEl.append(newCell('td', ''));
+    totalRowEl.append(newCell('td', ''));
+    totalRowEl.append(newCell('td', ''));
+    totalRowEl.append(newCell('td', ''));
+    totalRowEl.append(newCell('td', ''));
+    totalRowEl.append(newCell('td', ''));
+
+    balanceRowEl.append(newCell('th', 'Balance'));
+    balanceRowEl.append(this.amountCell.td);
+    balanceRowEl.append(newCell('td', ''));
+    balanceRowEl.append(this.toPayCell.td);
+    balanceRowEl.append(newCell('td', ''));
+    balanceRowEl.append(this.dueCell.td);
+    balanceRowEl.append(newCell('td', ''));
+    balanceRowEl.append(newCell('td', ''));
+
+    remainderRowEl.append(newCell('th', 'Remainder'));
+    remainderRowEl.append(newCell('td', ''));
+    remainderRowEl.append(newCell('td', ''));
+    remainderRowEl.append(newCell('td', ''));
+    remainderRowEl.append(newCell('td', ''));
+    remainderRowEl.append(newCell('td', ''));
+    remainderRowEl.append(newCell('td', ''));
+    remainderRowEl.append(newCell('td', ''));
   }
 
-  /**
-   * @param {HTMLInputElement} el
-   * @param {keyof Balances} key
-   */
-  setupChangeBalance(el, key) {
-    function cancel() {
-      el.value = formatMoney(totals.balances[key]);
-      el.blur();
-    }
-
-    el.onblur = (e) => cancel();
-    el.onkeydown = (e) => {
-      if (e.keyCode === 13) {
-        const newVal = parseMoney(el.value);
-        if (totals.balances[key] !== newVal) {
-          undoStack.doAction(new ChangeBalanceAction(el, key, newVal));
-          el.blur();
-        }
-      }
-      else if (e.keyCode === 27) {
-        cancel();
-      }
-    };
+  dispose() {
+    totalRowEl.innerHTML = '';
+    balanceRowEl.innerHTML = '';
+    remainderRowEl.innerHTML = '';
   }
 }
 
@@ -354,32 +377,6 @@ window.addEventListener('keydown', (e) => {
   if (!e.ctrlKey && !e.altKey && e.key === 'F5') { e.preventDefault(); sendToBackend('reload'); }
   if (!e.ctrlKey && !e.altKey && e.key === 'F12') { e.preventDefault(); sendToBackend('toggleDevTools'); }
 });
-
-class ChangeBalanceAction {
-  /**
-   * @param {HTMLInputElement} el
-   * @param {keyof Balances} key
-   * @param {number} newVal
-   */
-  constructor(el, key, newVal) {
-    this.el = el;
-    this.key = key;
-    this.newVal = newVal;
-    this.oldVal = totals.balances[key];
-  }
-
-  undo() {
-    totals.balances[this.key] = this.oldVal;
-    this.el.value = formatMoney(totals.balances[this.key]);
-    blink(this.el);
-  }
-
-  redo() {
-    totals.balances[this.key] = this.newVal;
-    this.el.value = formatMoney(totals.balances[this.key]);
-    blink(this.el);
-  }
-}
 
 class AddItemAction {
   /**
@@ -485,13 +482,6 @@ function blink(/** @type {HTMLElement} */el) {
  * @property {() => void} add
  * @property {() => void} remove
  * @property {() => void} blink
- */
-
-/**
- * @typedef Balances
- * @property {number} amount
- * @property {number} due
- * @property {number} toPay
  */
 
 /** @type {(channel: string, data?: any) => void} */
