@@ -93,7 +93,7 @@ class InputCell {
 class Expense {
   /**
    * @param {Budget}       budget
-   * @param {FileData['expenses'][0]=} data
+   * @param {ExpenseData=} data
    */
   constructor(budget, data) {
     this.budget = budget;
@@ -313,8 +313,8 @@ class UndoStack {
 class Totals {
 
   /**
-   * @param {Budget}                budget
-   * @param {FileData['balances']=} data
+   * @param {Budget}       budget
+   * @param {BalanceData=} data
    */
   constructor(budget, data) {
     const newCell = (/** @type {string} */ type, /** @type {string} */ text) => {
@@ -605,6 +605,23 @@ function blink(/** @type {HTMLElement} */el) {
 }
 
 /**
+ * @typedef ExpenseData
+ * @property {string}  name
+ * @property {number}  amount
+ * @property {number}  payPercent
+ * @property {number}  paidPercent
+ * @property {string}  usuallyDue
+ * @property {boolean} space
+ */
+
+/**
+ * @typedef BalanceData
+ * @property {number}  amount
+ * @property {number}  toPay
+ * @property {number}  due
+ */
+
+/**
  * @typedef Effected
  * @property {() => void} refresh
  */
@@ -616,17 +633,8 @@ function blink(/** @type {HTMLElement} */el) {
 
 /**
  * @typedef FileData
- * @property {object[]} expenses
- * @property {string}   expenses.name
- * @property {number}   expenses.amount
- * @property {number}   expenses.payPercent
- * @property {number}   expenses.paidPercent
- * @property {string}   expenses.usuallyDue
- * @property {boolean}  expenses.space
- * @property {object}   balances
- * @property {number}   balances.amount
- * @property {number}   balances.toPay
- * @property {number}   balances.due
+ * @property {ExpenseData[]} expenses
+ * @property {BalanceData}   balances
  */
 
 /**
