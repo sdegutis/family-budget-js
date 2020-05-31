@@ -24,7 +24,6 @@ electron.app.whenReady().then(() => {
   electron.ipcMain.on('isClean', (event, arg1) => setClean(arg1));
   electron.ipcMain.on('changedData', (event, arg1) => {
     data = arg1;
-    console.log('has', data);
   });
   electron.ipcMain.on('toggleDevTools', (event, arg1) => mainWindow.webContents.toggleDevTools());
   electron.ipcMain.on('reload', (event, arg1) => mainWindow.reload());
@@ -51,7 +50,6 @@ electron.app.whenReady().then(() => {
 
   const newFile = () => {
     if (nevermind("start a new file")) return;
-    setClean(true);
     mainWindow.webContents.send('NewFile');
   };
 
@@ -62,17 +60,13 @@ electron.app.whenReady().then(() => {
     if (!files) return;
 
     file = files[0];
-    setClean(true);
-
     const json = JSON.parse(fs.readFileSync(file, 'utf-8'));
-
     mainWindow.webContents.send('OpenFile', json);
   };
 
   const writeData = () => {
-    fs.writeFileSync(file, JSON.stringify(data));
+    fs.writeFileSync(file, JSON.stringify(data, null, 2));
     mainWindow.webContents.send('Saved');
-    setClean(true);
   };
 
   const saveFile = () => {

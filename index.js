@@ -266,7 +266,6 @@ class UndoStack {
     if (this.nextAction === 0) return;
     const action = this.actions[--this.nextAction];
     action.undo();
-    sendToBackend('isClean', this.isClean());
 
     this.budget.updateBackendData();
     this.budget.totals.refresh();
@@ -276,7 +275,6 @@ class UndoStack {
     if (this.nextAction === this.actions.length) return;
     const action = this.actions[this.nextAction++];
     action.redo();
-    sendToBackend('isClean', this.isClean());
 
     this.budget.updateBackendData();
     this.budget.totals.refresh();
@@ -443,6 +441,7 @@ class Budget {
   }
 
   updateBackendData() {
+    sendToBackend('isClean', this.undoStack.isClean());
     sendToBackend('changedData', {
       expenses: this.expenses.map(e => e.serialize()),
       balances: this.totals.serialize(),
@@ -475,6 +474,7 @@ function newFile() {
 
 function savedFile() {
   currentBudget.undoStack.noteCleanAction();
+  currentBudget.updateBackendData();
 }
 
 function formatMoney(/** @type {number} */ amount) {
