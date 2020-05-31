@@ -14,7 +14,7 @@ electron.app.whenReady().then(() => {
 
   let file = /** @type {string} */(null);
   let isClean = true;
-  let data = null;
+  let data = /** @type {any} */(null);
 
   const setClean = (/**@type {boolean}*/arg) => {
     isClean = arg;
@@ -22,7 +22,10 @@ electron.app.whenReady().then(() => {
   };
 
   electron.ipcMain.on('isClean', (event, arg1) => setClean(arg1));
-  electron.ipcMain.on('changedData', (event, arg1) => data = arg1);
+  electron.ipcMain.on('changedData', (event, arg1) => {
+    data = arg1;
+    console.log('has', data);
+  });
   electron.ipcMain.on('toggleDevTools', (event, arg1) => mainWindow.webContents.toggleDevTools());
   electron.ipcMain.on('reload', (event, arg1) => mainWindow.reload());
 
@@ -57,11 +60,29 @@ electron.app.whenReady().then(() => {
     mainWindow.webContents.send('OpenFile', json);
   };
 
+  const writeData = () => {
+    fs.writeFileSync(file, JSON.stringify(data));
+    mainWindow.webContents.send('Saved');
+    setClean(true);
+  };
+
   const saveFile = () => {
-    if (isClean) return;
+    if (file && isClean) return;
+
+    if (file) {
+      writeData();
+    }
+    else {
+      saveAsFile();
+    }
   };
 
   const saveAsFile = () => {
+    const result = electron.dialog.showSaveDialogSync(mainWindow, {});
+    if (!result) return;
+
+    file = result;
+    writeData();
   };
 
   const exit = () => mainWindow.close();

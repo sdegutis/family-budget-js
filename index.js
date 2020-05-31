@@ -241,12 +241,22 @@ class UndoStack {
     return this.actions[this.nextAction - 1] === this.cleanAction;
   }
 
+  noteCleanAction() {
+    if (this.nextAction === 0) {
+      this.cleanAction = null;
+    }
+    else {
+      this.cleanAction = this.actions[this.nextAction - 1];
+    }
+  }
+
   undo() {
     if (this.nextAction === 0) return;
     const action = this.actions[--this.nextAction];
     action.undo();
     sendToBackend('isClean', this.isClean());
 
+    this.budget.updateBackendData();
     this.budget.totals.refresh();
   }
 
@@ -256,6 +266,7 @@ class UndoStack {
     action.redo();
     sendToBackend('isClean', this.isClean());
 
+    this.budget.updateBackendData();
     this.budget.totals.refresh();
   }
 
@@ -267,6 +278,7 @@ class UndoStack {
     this.actions.push(action);
     this.redo();
 
+    this.budget.updateBackendData();
     this.budget.totals.refresh();
   }
 }
@@ -380,6 +392,14 @@ class Totals {
     this.remainderDueCell.refresh();
   }
 
+  serialize() {
+    return {
+      amount: this.balanceAmountCell.value,
+      toPay: this.balanceToPayCell.value,
+      due: this.balanceDueCell.value,
+    };
+  }
+
   dispose() {
     totalRowEl.innerHTML = '';
     balanceRowEl.innerHTML = '';
@@ -406,7 +426,15 @@ class Budget {
       }
     }
 
+    this.updateBackendData();
     this.totals.refresh();
+  }
+
+  updateBackendData() {
+    sendToBackend('changedData', {
+      expenses: this.expenses.map(e => e.serialize()),
+      balances: this.totals.serialize(),
+    });
   }
 
   dispose() {
@@ -427,6 +455,10 @@ function openFile(/** @type {FileData} */json) {
 function newFile() {
   currentBudget.dispose();
   currentBudget = new Budget();
+}
+
+function savedFile() {
+  currentBudget.undoStack.noteCleanAction();
 }
 
 function formatMoney(/** @type {number} */ amount) {
@@ -564,6 +596,7 @@ function blink(/** @type {HTMLElement} */el) {
  * @property {() => void} add
  * @property {() => void} remove
  * @property {() => void} blink
+ * @property {() => any}  serialize
  */
 
 /** @type {(channel: string, data?: any) => void} */
