@@ -9,3 +9,4 @@ electron.ipcRenderer.on('Redo', (event) => currentBudget.undoStack.redo());
 electron.ipcRenderer.on('NewFile', (event) => newFile());
 electron.ipcRenderer.on('Saved', (event) => savedFile());
 electron.ipcRenderer.on('OpenFile', (event, data) => openFile(data));
+electron.ipcRenderer.on('DeleteItem', (event, data) => currentBudget.deleteItem(data));

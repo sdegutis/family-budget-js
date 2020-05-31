@@ -101,6 +101,11 @@ class Expense {
     this.tr = document.createElement('tr');
     expenseRowsEl.append(this.tr);
 
+    this.tr.oncontextmenu = (e) => {
+      e.preventDefault();
+      sendToBackend('showMenu', e.clientX, e.clientY, budget.expenses.indexOf(this));
+    };
+
     this.nameCell = new InputCell({
       budget,
       initial: data?.name ?? 'New Expense',
@@ -163,9 +168,10 @@ class Expense {
     );
   }
 
-  add() {
-    this.budget.expenses.push(this);
-    expenseRowsEl.append(this.tr);
+  add(/** @type {number=} */ index) {
+    if (index === undefined) index = this.budget.expenses.length;
+    this.budget.expenses.splice(index, 0, this);
+    expenseRowsEl.insertBefore(this.tr, expenseRowsEl.children[index]);
   }
 
   remove() {
@@ -197,6 +203,11 @@ class Space {
 
     this.tr = document.createElement('tr');
 
+    this.tr.oncontextmenu = (e) => {
+      e.preventDefault();
+      sendToBackend('showMenu', e.clientX, e.clientY, budget.expenses.indexOf(this));
+    };
+
     const td = document.createElement('td');
     td.innerHTML = '&nbsp;';
     td.colSpan = 8;
@@ -209,9 +220,10 @@ class Space {
     return { space: true };
   }
 
-  add() {
-    this.budget.expenses.push(this);
-    expenseRowsEl.append(this.tr);
+  add(/** @type {number=} */ index) {
+    if (index === undefined) index = this.budget.expenses.length;
+    this.budget.expenses.splice(index, 0, this);
+    expenseRowsEl.insertBefore(this.tr, expenseRowsEl.children[index]);
   }
 
   remove() {
@@ -437,6 +449,10 @@ class Budget {
     });
   }
 
+  deleteItem(/** @type {number} */index) {
+    this.undoStack.doAction(new RemoveItemAction(this.expenses[index], index));
+  }
+
   dispose() {
     this.totals.dispose();
     for (const expense of [...this.expenses]) {
@@ -507,6 +523,26 @@ class AddItemAction {
   redo() {
     this.item.add();
     this.item.blink();
+  }
+}
+
+class RemoveItemAction {
+  /**
+   * @param {Item}   item
+   * @param {number} index
+   */
+  constructor(item, index) {
+    this.item = item;
+    this.index = index;
+  }
+
+  undo() {
+    this.item.add(this.index);
+    this.item.blink();
+  }
+
+  redo() {
+    this.item.remove();
   }
 }
 
@@ -593,11 +629,11 @@ function blink(/** @type {HTMLElement} */el) {
 
 /**
  * @typedef Item
- * @property {() => void} add
+ * @property {(n?: number) => void} add
  * @property {() => void} remove
  * @property {() => void} blink
  * @property {() => any}  serialize
  */
 
-/** @type {(channel: string, data?: any) => void} */
+/** @type {(channel: string, ...data: any) => void} */
 var sendToBackend;

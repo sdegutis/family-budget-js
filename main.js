@@ -29,6 +29,15 @@ electron.app.whenReady().then(() => {
   electron.ipcMain.on('toggleDevTools', (event, arg1) => mainWindow.webContents.toggleDevTools());
   electron.ipcMain.on('reload', (event, arg1) => mainWindow.reload());
 
+  electron.ipcMain.on('showMenu', (event, x, y, i) => {
+    electron.Menu.buildFromTemplate([
+      {
+        label: 'Delete',
+        click() { mainWindow.webContents.send('DeleteItem', i); }
+      }
+    ]).popup({ window: mainWindow, x, y });
+  });
+
   mainWindow.loadFile('index.html');
 
   const nevermind = (/** @type {string} */action) => {
