@@ -24,9 +24,13 @@ electron.app.whenReady().then(() => {
   let isClean = true;
   let data = /** @type {any} */(null);
 
+  const resetTitle = () => {
+    mainWindow.title = (isClean ? '' : '• ') + (file ? `${path.basename(file)} - ` : '') + 'Family Budget';
+  };
+
   electron.ipcMain.on('isClean', (event, arg1) => {
     isClean = arg1;
-    mainWindow.title = 'Family Budget' + (isClean ? '' : ' •');
+    resetTitle();
   });
 
   electron.ipcMain.on('changedData', (event, arg1) => {
@@ -62,12 +66,14 @@ electron.app.whenReady().then(() => {
     if (nevermind("start a new file")) return;
     mainWindow.webContents.send('NewFile');
     file = null;
+    resetTitle();
   };
 
   const loadFile = (/** @type {string} */ path) => {
     file = path;
     const json = JSON.parse(fs.readFileSync(file, 'utf-8'));
     mainWindow.webContents.send('OpenFile', json);
+    resetTitle();
   };
 
   const openFile = () => {
@@ -103,6 +109,7 @@ electron.app.whenReady().then(() => {
 
     file = result;
     writeData();
+    resetTitle();
   };
 
   const exit = () => mainWindow.close();
@@ -138,7 +145,7 @@ electron.app.whenReady().then(() => {
     },
   ]));
 
-  mainWindow.on('ready-to-show', () => {
+  mainWindow.webContents.on('did-finish-load', () => {
     const [, openedFile] = process.argv;
     if (openedFile && openedFile !== '.') {
       loadFile(openedFile);
