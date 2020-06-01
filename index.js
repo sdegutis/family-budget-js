@@ -3,6 +3,9 @@ const balanceRowEl = /**@type HTMLTableRowElement*/(document.getElementById('bal
 const remainderRowEl = /**@type HTMLTableRowElement*/(document.getElementById('remainderRow'));
 const expenseRowsEl = /**@type HTMLTableSectionElement*/(document.getElementById('expenseRows'));
 
+document.getElementById('addExpenseButton').onclick = addExpense;
+document.getElementById('addSpaceButton').onclick = addSpace;
+
 class CalculatedCell {
   /**
    * @param {object}               opts

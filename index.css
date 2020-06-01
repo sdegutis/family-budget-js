@@ -106,3 +106,13 @@ td.focused {
   border-style: double;
   /* background: #17f3; */
 }
+
+button {
+  border: none;
+  outline: none;
+  background: #eee;
+  padding: 3px 6px;
+  font: inherit;
+  margin: 3px;
+  border: 1px solid blue;
+}
