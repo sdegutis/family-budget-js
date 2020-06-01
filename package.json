@@ -23,5 +23,8 @@
       "unicode": false,
       "artifactName": "family_budget.exe"
     }
+  },
+  "dependencies": {
+    "electron-regedit": "^2.0.0"
   }
 }

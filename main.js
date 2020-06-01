@@ -2,6 +2,15 @@ const electron = require('electron');
 const path = require('path');
 const fs = require('fs');
 
+const { ProgId, ShellOption, Regedit } = require('electron-regedit');
+
+new ProgId({
+  description: 'Family Budget File',
+  extensions: ['familybudget'],
+});
+
+Regedit.installAll();
+
 electron.app.whenReady().then(() => {
   const mainWindow = new electron.BrowserWindow({
     title: 'Family Budget',
