@@ -2,6 +2,7 @@ const electron = require('electron');
 const path = require('path');
 const fs = require('fs');
 
+// @ts-ignore
 const { ProgId, ShellOption, Regedit } = require('electron-regedit');
 new ProgId({
   description: 'Family Budget File',
