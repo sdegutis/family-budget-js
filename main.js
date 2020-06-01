@@ -59,7 +59,9 @@ electron.app.whenReady().then(() => {
   const openFile = () => {
     if (nevermind("open another file")) return;
 
-    const files = electron.dialog.showOpenDialogSync(mainWindow, {});
+    const files = electron.dialog.showOpenDialogSync(mainWindow, {
+      filters: [{ name: 'Family Budget', extensions: ['familybudget'] }],
+    });
     if (!files) return;
 
     file = files[0];
@@ -82,7 +84,9 @@ electron.app.whenReady().then(() => {
   };
 
   const saveAsFile = () => {
-    const result = electron.dialog.showSaveDialogSync(mainWindow, {});
+    const result = electron.dialog.showSaveDialogSync(mainWindow, {
+      filters: [{ name: 'Family Budget', extensions: ['familybudget'] }],
+    });
     if (!result) return;
 
     file = result;
