@@ -52,14 +52,34 @@ class InputCell {
     this.input = document.createElement('input');
     this.input.classList.add('cell');
 
+    this.input.readOnly = true;
     this.input.value = format(this.value);
 
+
+
     this.input.onfocus = () => {
-      this.td.classList.add('focused');
+      // if (this.input.readOnly) {
+      //   this.input.blur();
+      // }
+      this.budget.setCurrentCell(this);
+    };
+
+    // this.input.onkeypress = (e) => {
+    //   console.log('ok');
+    //   if (this.input.readOnly) {
+    //     if (e.keyCode === 13) {
+    //       this.input.readOnly = false;
+    //       this.input.focus();
+    //     }
+    //   }
+    // };
+
+    this.input.onclick = () => {
+      this.budget.setCurrentCell(this);
     };
 
     this.input.onblur = () => {
-      this.td.classList.remove('focused');
+      // this.input.readOnly = true;
       this.input.value = format(this.value);
       this.input.blur();
     };
@@ -126,7 +146,7 @@ class Item {
     };
 
     this.tr.ondragover = (e) => {
-      if (this.budget.dragging !== this) {
+      if (this.budget.dragging && this.budget.dragging !== this) {
         this.budget.dropping?.tr.classList.remove('dropping');
         this.budget.dropping = this;
         this.budget.dropping.tr.classList.add('dropping');
@@ -452,6 +472,8 @@ class Budget {
     this.dragging = /** @type {Item} */(null);
     this.dropping = /** @type {Item} */(null);
 
+    this.currentCell = /** @type {InputCell} */(null);
+
     this.undoStack = new UndoStack(this);
     this.items = /** @type {Item[]} */([]);
     this.totals = new Totals(this, data?.balances);
@@ -467,6 +489,13 @@ class Budget {
 
     this.updateBackendData();
     this.totals.refresh();
+  }
+
+  setCurrentCell(/** @type {InputCell} */ cell) {
+    this.currentCell?.td.classList.remove('focused');
+
+    this.currentCell = cell;
+    this.currentCell.td.classList.add('focused');
   }
 
   updateBackendData() {

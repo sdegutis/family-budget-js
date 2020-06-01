@@ -104,5 +104,8 @@ input {
 td.focused {
   border-color: blue;
   border-style: double;
-  /* background: #17f3; */
+}
+
+.cell:focus:not(:read-only) {
+  background: #17f3;
 }
