@@ -85,7 +85,6 @@ class InputCell {
     this.value = val;
     this.input.value = this.format(this.value);
     blink(this.input);
-
     this.effects?.refresh();
   }
 }
@@ -559,6 +558,7 @@ class AddItemAction {
 
   redo() {
     this.item.add();
+    this.item.tr.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     this.item.blink();
   }
 }
@@ -575,6 +575,7 @@ class RemoveItemAction {
 
   undo() {
     this.item.add(this.index);
+    this.item.tr.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     this.item.blink();
   }
 
@@ -597,6 +598,7 @@ class MoveItemAction {
     const item = currentBudget.items[this.to];
     currentBudget.items[this.to].remove();
     item.add(this.from);
+    item.tr.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     item.blink();
   }
 
@@ -604,6 +606,7 @@ class MoveItemAction {
     const item = currentBudget.items[this.from];
     currentBudget.items[this.from].remove();
     item.add(this.to);
+    item.tr.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     item.blink();
   }
 }
@@ -622,10 +625,12 @@ class EditAction {
 
   undo() {
     this.cell.useValue(this.oldVal);
+    this.cell.input.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
   }
 
   redo() {
     this.cell.useValue(this.newVal);
+    this.cell.input.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
   }
 }
 
