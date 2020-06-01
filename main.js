@@ -21,9 +21,17 @@ electron.app.whenReady().then(() => {
     mainWindow.title = 'Family Budget' + (isClean ? '' : ' •');
   });
 
-  electron.ipcMain.on('changedData', (event, arg1) => data = arg1);
-  electron.ipcMain.on('toggleDevTools', (event, arg1) => mainWindow.webContents.toggleDevTools());
-  electron.ipcMain.on('reload', (event, arg1) => mainWindow.reload());
+  electron.ipcMain.on('changedData', (event, arg1) => {
+    data = arg1;
+  });
+
+  electron.ipcMain.on('toggleDevTools', (event, arg1) => {
+    mainWindow.webContents.toggleDevTools();
+  });
+
+  electron.ipcMain.on('reload', (event, arg1) => {
+    mainWindow.reload();
+  });
 
   electron.ipcMain.on('showMenu', (event, x, y, i) => {
     electron.Menu.buildFromTemplate([
