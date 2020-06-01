@@ -15,13 +15,13 @@
     "electron-builder": "^22.6.1"
   },
   "build": {
-    "appId": "com.electron.app",
+    "appId": "org.degutis.budget",
     "win": {
       "target": "portable"
     },
     "portable": {
       "unicode": false,
-      "artifactName": "my_electron_app.exe"
+      "artifactName": "family_budget.exe"
     }
   }
 }
