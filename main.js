@@ -3,12 +3,10 @@ const path = require('path');
 const fs = require('fs');
 
 const { ProgId, ShellOption, Regedit } = require('electron-regedit');
-
 new ProgId({
   description: 'Family Budget File',
   extensions: ['familybudget'],
 });
-
 Regedit.installAll();
 
 electron.app.whenReady().then(() => {
@@ -65,6 +63,12 @@ electron.app.whenReady().then(() => {
     file = null;
   };
 
+  const loadFile = (/** @type {string} */ path) => {
+    file = path;
+    const json = JSON.parse(fs.readFileSync(file, 'utf-8'));
+    mainWindow.webContents.send('OpenFile', json);
+  };
+
   const openFile = () => {
     if (nevermind("open another file")) return;
 
@@ -73,9 +77,7 @@ electron.app.whenReady().then(() => {
     });
     if (!files) return;
 
-    file = files[0];
-    const json = JSON.parse(fs.readFileSync(file, 'utf-8'));
-    mainWindow.webContents.send('OpenFile', json);
+    loadFile(files[0]);
   };
 
   const writeData = () => {
@@ -134,4 +136,9 @@ electron.app.whenReady().then(() => {
       ],
     },
   ]));
+
+  const openedFile = process.argv[1];
+  if (openedFile && openedFile !== '.') {
+    loadFile(openedFile);
+  }
 });

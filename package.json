@@ -15,14 +15,8 @@
     "electron-builder": "^22.6.1"
   },
   "build": {
-    "appId": "org.degutis.budget",
-    "win": {
-      "target": "portable"
-    },
-    "portable": {
-      "unicode": false,
-      "artifactName": "family_budget.exe"
-    }
+    "productName": "Family Budget",
+    "appId": "org.degutis.budget"
   },
   "dependencies": {
     "electron-regedit": "^2.0.0"
