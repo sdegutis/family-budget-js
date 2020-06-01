@@ -138,8 +138,10 @@ electron.app.whenReady().then(() => {
     },
   ]));
 
-  const openedFile = process.argv[1];
-  if (openedFile && openedFile !== '.') {
-    loadFile(openedFile);
-  }
+  mainWindow.on('ready-to-show', () => {
+    const [, openedFile] = process.argv;
+    if (openedFile && openedFile !== '.') {
+      loadFile(openedFile);
+    }
+  });
 });
