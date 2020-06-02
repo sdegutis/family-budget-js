@@ -94,6 +94,7 @@ class InputCell {
   edit() {
     this.input.readOnly = false;
     this.input.focus();
+    this.input.select();
   }
 
   editing() {
@@ -106,6 +107,10 @@ class InputCell {
       this.budget.undoStack.doAction(new EditAction(this, this.value, newVal));
     }
     this.unfocus();
+
+    if (this.downCell) {
+      this.budget.setCurrentCell(this.downCell);
+    }
   }
 
   unfocus() {
@@ -523,6 +528,13 @@ class Budget {
     if (e.ctrlKey && !e.altKey && e.key === 'z') { e.preventDefault(); this.undoStack.undo(); return; }
     if (e.ctrlKey && !e.altKey && e.key === 'y') { e.preventDefault(); this.undoStack.redo(); return; }
 
+    if (!e.ctrlKey && !e.altKey && e.key.length === 1 &&
+      this.currentCell && !this.currentCell.editing()
+    ) {
+      this.currentCell.edit();
+      return;
+    }
+
     if (!e.ctrlKey && !e.altKey && e.keyCode === 13) { this.pressedEnter(e); return; }
     if (!e.ctrlKey && !e.altKey && e.keyCode === 27) { this.pressedEsc(e); return; }
     if (!e.ctrlKey && !e.altKey && e.keyCode === 37) { this.pressedLeft(e); return; }
@@ -620,6 +632,7 @@ class Budget {
 
     this.currentCell = cell;
     this.currentCell?.td.classList.add('focused');
+    this.currentCell?.input.focus();
 
     this.currentCell?.td.scrollIntoView({
       behavior: 'smooth',
