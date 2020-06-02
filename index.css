@@ -27,8 +27,6 @@ body > div::-webkit-scrollbar {
 body > div {
   overflow-x: hidden;
   overflow-y: auto;
-  background: #fff;
-  border-right: 1px solid #ddd;
 }
 
 table {
@@ -41,10 +39,6 @@ table {
 input {
   font: inherit;
   background: #ffe;
-  /* background: #17f2; */
-}
-
-input:hover {
 }
 
 th {
