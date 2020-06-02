@@ -515,14 +515,22 @@ class Budget {
     this.reLinkItems();
 
     this.keyHandler = this.handleKeys.bind(this);
+    this.scrollHandler = this.scroll.bind(this);
 
     window.addEventListener('keydown', this.keyHandler);
+    expenseRowsEl.parentElement.addEventListener('scroll', this.scrollHandler, { passive: true });
   }
 
   updated() {
     this.updateBackendData();
     this.totals.refresh();
     welcomeEl.hidden = this.items.length > 0;
+  }
+
+  scroll() {
+    highlighterEl.classList.remove('animate');
+    this.repositionCellBorder();
+    highlighterEl.classList.add('animate');
   }
 
   handleKeys(/** @type {KeyboardEvent} */ e) {
@@ -637,8 +645,7 @@ class Budget {
       highlighterEl.hidden = false;
       highlighterEl.style.width = (this.currentCell.td.clientWidth + 2) + 'px';
       highlighterEl.style.height = (this.currentCell.td.clientHeight + 2) + 'px';
-      highlighterEl.style.left = (this.currentCell.td.getBoundingClientRect().left + document.documentElement.scrollLeft) + 'px';
-      highlighterEl.style.top = (this.currentCell.td.getBoundingClientRect().top + /**@type {HTMLElement}*/(expenseRowsEl.parentElement).scrollTop) + 'px';
+      this.repositionCellBorder();
     }
     else {
       highlighterEl.hidden = true;
@@ -652,6 +659,20 @@ class Budget {
       block: 'nearest',
       inline: 'nearest',
     });
+  }
+
+  repositionCellBorder() {
+    if (!this.currentCell) return;
+
+    highlighterEl.style.left = (
+      this.currentCell.td.getBoundingClientRect().left +
+      document.documentElement.scrollLeft
+    ) + 'px';
+
+    highlighterEl.style.top = (
+      document.body.offsetTop
+      + this.currentCell.td.getBoundingClientRect().top
+    ) + 'px';
   }
 
   updateBackendData() {
@@ -668,6 +689,7 @@ class Budget {
 
   dispose() {
     window.removeEventListener('keydown', this.keyHandler);
+    expenseRowsEl.parentElement.removeEventListener('scroll', this.scrollHandler);
     this.totals.dispose();
     for (const expense of [...this.items]) {
       expense.remove();
