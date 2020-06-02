@@ -869,24 +869,26 @@ function blink(/** @type {HTMLElement} */el) {
   };
 }
 
-/** @type {(() => void) | null} */
+/** @type {NodeJS.Timeout | null} */
 let cancelToast = null;
 
 function showToast(/** @type {string} */ msg) {
-  if (cancelToast) cancelToast();
-
-  // toastEl.inn
-
-  const clearToast = setTimeout(() => {
-
-  }, 1000);
-
-  cancelToast = () => {
-
-
-
-    // clearToast();
+  const hideToast = () => {
+    toastEl.classList.remove('visible');
   };
+
+  if (cancelToast) {
+    clearTimeout(cancelToast);
+    cancelToast = null;
+    hideToast();
+  }
+
+  setTimeout(() => {
+    toastEl.classList.add('visible');
+    toastEl.innerText = msg;
+    toastEl.onclick = hideToast;
+    cancelToast = setTimeout(hideToast, 3000);
+  }, 100);
 }
 
 /**

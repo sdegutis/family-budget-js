@@ -130,3 +130,19 @@ input {
 #highlighter.animate {
   transition: left 150ms ease-out, width 150ms ease-out, height 150ms ease-out, top 150ms ease-out;
 }
+
+#toast {
+  position: absolute;
+  background: #333;
+  color: #fff;
+  padding: 1em 2em;
+  border-radius: 4px;
+  left: 1em;
+  bottom: -4em;
+  cursor: pointer;
+  transition: bottom 150ms ease-out;
+}
+
+#toast.visible {
+  bottom: 1em;
+}
