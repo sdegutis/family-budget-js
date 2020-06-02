@@ -490,6 +490,15 @@ class Budget {
 
     this.updateBackendData();
     this.totals.refresh();
+
+    this.keyHandler = this.handleKeys.bind(this);
+
+    window.addEventListener('keydown', this.keyHandler);
+  }
+
+  handleKeys(/** @type {KeyboardEvent} */ e) {
+    if (e.ctrlKey && !e.altKey && e.key === 'z') { e.preventDefault(); this.undoStack.undo(); return; }
+    if (e.ctrlKey && !e.altKey && e.key === 'y') { e.preventDefault(); this.undoStack.redo(); return; }
   }
 
   setCurrentCell(/** @type {InputCell} */ cell) {
@@ -567,10 +576,8 @@ function newCell(/** @type {string} */ type, /** @type {string} */ text) {
 }
 
 window.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && !e.altKey && e.key === 'z') { e.preventDefault(); currentBudget.undoStack.undo(); }
-  if (e.ctrlKey && !e.altKey && e.key === 'y') { e.preventDefault(); currentBudget.undoStack.redo(); }
-  if (!e.ctrlKey && !e.altKey && e.key === 'F5') { e.preventDefault(); sendToBackend('reload'); }
-  if (!e.ctrlKey && !e.altKey && e.key === 'F12') { e.preventDefault(); sendToBackend('toggleDevTools'); }
+  if (!e.ctrlKey && !e.altKey && e.key === 'F5') { e.preventDefault(); sendToBackend('reload'); return; }
+  if (!e.ctrlKey && !e.altKey && e.key === 'F12') { e.preventDefault(); sendToBackend('toggleDevTools'); return; }
 });
 
 class AddItemAction {
