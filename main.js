@@ -90,6 +90,7 @@ electron.app.whenReady().then(() => {
   const writeData = () => {
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
     mainWindow.webContents.send('Saved');
+    resetTitle();
   };
 
   const saveFile = () => {
@@ -109,7 +110,6 @@ electron.app.whenReady().then(() => {
 
     file = result;
     writeData();
-    resetTitle();
   };
 
   const exit = () => mainWindow.close();
