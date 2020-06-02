@@ -637,8 +637,8 @@ class Budget {
       highlighterEl.hidden = false;
       highlighterEl.style.width = (this.currentCell.td.clientWidth + 2) + 'px';
       highlighterEl.style.height = (this.currentCell.td.clientHeight + 2) + 'px';
-      highlighterEl.style.left = this.currentCell.td.offsetLeft + 'px';
-      highlighterEl.style.top = this.currentCell.td.offsetTop + 'px';
+      highlighterEl.style.left = (this.currentCell.td.getBoundingClientRect().left + document.documentElement.scrollLeft) + 'px';
+      highlighterEl.style.top = (this.currentCell.td.getBoundingClientRect().top + /**@type {HTMLElement}*/(expenseRowsEl.parentElement).scrollTop) + 'px';
     }
     else {
       highlighterEl.hidden = true;
