@@ -557,6 +557,7 @@ class Budget {
 
   pressedEnter(/** @type {KeyboardEvent} */ e) {
     if (this.currentCell) {
+      e.preventDefault();
       if (this.currentCell.editing()) {
         this.currentCell.commit();
       }
@@ -567,6 +568,7 @@ class Budget {
   }
 
   pressedEsc(/** @type {KeyboardEvent} */ e) {
+    e.preventDefault();
     this.currentCell?.cancel();
   }
 
@@ -591,18 +593,22 @@ class Budget {
   }
 
   pressedUp(/** @type {KeyboardEvent} */ e) {
-    e.preventDefault();
-    this.currentCell?.cancel();
-    if (this.currentCell?.upCell) {
-      this.setCurrentCell(this.currentCell.upCell);
+    if (!this.currentCell?.editing()) {
+      e.preventDefault();
+      this.currentCell?.cancel();
+      if (this.currentCell?.upCell) {
+        this.setCurrentCell(this.currentCell.upCell);
+      }
     }
   }
 
   pressedDown(/** @type {KeyboardEvent} */ e) {
-    e.preventDefault();
-    this.currentCell?.cancel();
-    if (this.currentCell?.downCell) {
-      this.setCurrentCell(this.currentCell.downCell);
+    if (!this.currentCell?.editing()) {
+      e.preventDefault();
+      this.currentCell?.cancel();
+      if (this.currentCell?.downCell) {
+        this.setCurrentCell(this.currentCell.downCell);
+      }
     }
   }
 
