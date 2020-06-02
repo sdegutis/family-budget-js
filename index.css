@@ -105,10 +105,10 @@ input {
   border: none;
 }
 
-td.focused {
+/* td.focused {
   border-color: blue;
   border-style: double;
-}
+} */
 
 .cell:focus:not(:read-only) {
   background: #17f3;
@@ -119,4 +119,14 @@ td.focused {
   font-size: 120%;
   color: #555;
   text-shadow: 0px -1px 1px #fff;
+}
+
+#highlighter-parent {
+  position: relative;
+}
+
+#highlighter {
+  position: absolute;
+  border: 1px solid blue;
+  transition: left 150ms ease-out, width 150ms ease-out, height 150ms ease-out, top 150ms ease-out;
 }

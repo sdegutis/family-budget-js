@@ -3,6 +3,7 @@ const balanceRowEl = /**@type {HTMLTableRowElement}*/(document.getElementById('b
 const remainderRowEl = /**@type {HTMLTableRowElement}*/(document.getElementById('remainderRow'));
 const expenseRowsEl = /**@type {HTMLTableSectionElement}*/(document.getElementById('expenseRows'));
 const welcomeEl = /**@type {HTMLElement}*/(document.getElementById('welcome'));
+const highlighterEl = /**@type {HTMLElement}*/(document.getElementById('highlighter'));
 
 class CalculatedCell {
   /**
@@ -628,10 +629,22 @@ class Budget {
     if (this.currentCell === cell) return;
 
     this.currentCell?.cancel();
-    this.currentCell?.td.classList.remove('focused');
+    // this.currentCell?.td.classList.remove('focused');
 
     this.currentCell = cell;
-    this.currentCell?.td.classList.add('focused');
+
+    if (this.currentCell) {
+      highlighterEl.hidden = false;
+      highlighterEl.style.width = (this.currentCell.td.clientWidth + 2) + 'px';
+      highlighterEl.style.height = (this.currentCell.td.clientHeight + 2) + 'px';
+      highlighterEl.style.left = this.currentCell.td.offsetLeft + 'px';
+      highlighterEl.style.top = this.currentCell.td.offsetTop + 'px';
+    }
+    else {
+      highlighterEl.hidden = true;
+    }
+
+    // this.currentCell?.td.classList.add('focused');
     this.currentCell?.input.focus();
 
     this.currentCell?.td.scrollIntoView({
