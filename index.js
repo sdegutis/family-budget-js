@@ -15,7 +15,7 @@ class CalculatedCell {
       dep.effects = this;
     }
 
-    /** @type {Effected} */
+    /** @type {Effected | null} */
     this.effects = null;
 
     this.get = get;
@@ -43,12 +43,12 @@ class InputCell {
   constructor({ initial, format, parse, budget }) {
     this.budget = budget;
 
-    this.leftCell = /*** @type {InputCell} */(null);
-    this.rightCell = /** @type {InputCell} */(null);
-    this.upCell = /***** @type {InputCell} */(null);
-    this.downCell = /*** @type {InputCell} */(null);
+    /** @type {InputCell | null} */ this.leftCell = null;
+    /** @type {InputCell | null} */ this.rightCell = null;
+    /** @type {InputCell | null} */ this.upCell = null;
+    /** @type {InputCell | null} */ this.downCell = null;
 
-    /** @type {Effected} */
+    /** @type {Effected | null} */
     this.effects = null;
 
     this.value = initial;
@@ -162,8 +162,8 @@ class Item {
 
     this.tr.ondrop = (e) => {
       this.budget.undoStack.doAction(new MoveItemAction(
-        this.budget.items.indexOf(this.budget.dragging),
-        this.budget.items.indexOf(this.budget.dropping)
+        this.budget.items.indexOf(/** @type {Item} */(this.budget.dragging)),
+        this.budget.items.indexOf(/** @type {Item} */(this.budget.dropping))
       ));
     };
   }
@@ -314,7 +314,7 @@ class UndoStack {
     this.budget = budget;
     this.actions = /** @type {Action[]} */([]);
     this.nextAction = 0;
-    this.cleanAction = /** @type {Action} */(null);
+    this.cleanAction = /** @type {Action | null} */(null);
   }
 
   isClean() {
@@ -485,8 +485,8 @@ class Budget {
    * @param {FileData=} data
    */
   constructor(data) {
-    this.dragging = /** @type {Item} */(null);
-    this.dropping = /** @type {Item} */(null);
+    this.dragging = /** @type {Item | null} */(null);
+    this.dropping = /** @type {Item | null} */(null);
 
     /** @type {InputCell | null} */
     this.currentCell = null;
@@ -791,7 +791,7 @@ class EditAction {
   }
 }
 
-/** @type {() => void} */
+/** @type {(() => void) | null} */
 let cancelLastBlink = null;
 
 function blink(/** @type {HTMLElement} */el) {
@@ -835,7 +835,7 @@ function blink(/** @type {HTMLElement} */el) {
 
 /**
  * @typedef Dependencies
- * @property {Effected} effects
+ * @property {Effected | null} effects
  */
 
 /**

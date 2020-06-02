@@ -7,6 +7,7 @@
     "sourceRoot": ".",
     "inlineSourceMap": true,
     "outDir": "dest",
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "strict": true
   }
 }

@@ -20,7 +20,7 @@ electron.app.whenReady().then(() => {
     },
   });
 
-  let file = /** @type {string} */(null);
+  let file = /** @type {string | null} */(null);
   let isClean = true;
   let data = /** @type {any} */(null);
 
@@ -88,7 +88,7 @@ electron.app.whenReady().then(() => {
   };
 
   const writeData = () => {
-    fs.writeFileSync(file, JSON.stringify(data, null, 2));
+    fs.writeFileSync(/** @type {string} */(file), JSON.stringify(data, null, 2));
     mainWindow.webContents.send('Saved');
     isClean = true;
     resetTitle();
