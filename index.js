@@ -497,6 +497,7 @@ class Budget {
   updated() {
     this.updateBackendData();
     this.totals.refresh();
+    welcomeEl.hidden = this.items.length > 0;
   }
 
   handleKeys(/** @type {KeyboardEvent} */ e) {
