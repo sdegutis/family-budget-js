@@ -116,6 +116,10 @@ input {
   font-style: italic;
 }
 
+#welcome p {
+  margin: 1em 0;
+}
+
 #highlighter {
   position: absolute;
   pointer-events: none;
