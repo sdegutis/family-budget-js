@@ -70,23 +70,11 @@ class InputCell {
     };
 
     this.input.onblur = () => {
-      this.input.value = format(this.value);
-      this.unfocus();
+      this.cancel();
     };
 
-    // this.input.onkeydown = (e) => {
-    //   if (e.keyCode === 13) {
-    //     const newVal = parse(this.input.value);
-    //     if (this.value !== newVal) {
-    //       budget.undoStack.doAction(new EditAction(this, this.value, newVal));
-    //       this.unfocus();
-    //     }
-    //   }
-    //   else if (e.keyCode === 27) {
-    //     this.input.value = format(this.value);
-    //     this.unfocus();
-    //   }
-    // };
+    this.format = format;
+    this.parse = parse;
 
     this.td.append(this.input);
   }
@@ -96,6 +84,28 @@ class InputCell {
     this.input.value = this.format(this.value);
     blink(this.input);
     this.effects?.refresh();
+  }
+
+  cancel() {
+    this.input.value = this.format(this.value);
+    this.unfocus();
+  }
+
+  edit() {
+    this.input.readOnly = false;
+    this.input.focus();
+  }
+
+  editing() {
+    return !this.input.readOnly && this.input === document.activeElement;
+  }
+
+  commit() {
+    const newVal = this.parse(this.input.value);
+    if (this.value !== newVal) {
+      this.budget.undoStack.doAction(new EditAction(this, this.value, newVal));
+    }
+    this.unfocus();
   }
 
   unfocus() {
@@ -478,7 +488,7 @@ class Budget {
     this.dragging = /** @type {Item} */(null);
     this.dropping = /** @type {Item} */(null);
 
-    /** @type {InputCell} */
+    /** @type {InputCell | null} */
     this.currentCell = null;
 
     this.undoStack = new UndoStack(this);
@@ -513,12 +523,12 @@ class Budget {
     if (e.ctrlKey && !e.altKey && e.key === 'z') { e.preventDefault(); this.undoStack.undo(); return; }
     if (e.ctrlKey && !e.altKey && e.key === 'y') { e.preventDefault(); this.undoStack.redo(); return; }
 
-    if (!e.ctrlKey && !e.altKey && e.keyCode === 13) { e.preventDefault(); this.pressedEnter(); return; }
-    if (!e.ctrlKey && !e.altKey && e.keyCode === 27) { e.preventDefault(); this.pressedEsc(); return; }
-    if (!e.ctrlKey && !e.altKey && e.keyCode === 37) { e.preventDefault(); this.pressedLeft(); return; }
-    if (!e.ctrlKey && !e.altKey && e.keyCode === 38) { e.preventDefault(); this.pressedUp(); return; }
-    if (!e.ctrlKey && !e.altKey && e.keyCode === 39) { e.preventDefault(); this.pressedRight(); return; }
-    if (!e.ctrlKey && !e.altKey && e.keyCode === 40) { e.preventDefault(); this.pressedDown(); return; }
+    if (!e.ctrlKey && !e.altKey && e.keyCode === 13) { this.pressedEnter(e); return; }
+    if (!e.ctrlKey && !e.altKey && e.keyCode === 27) { this.pressedEsc(e); return; }
+    if (!e.ctrlKey && !e.altKey && e.keyCode === 37) { this.pressedLeft(e); return; }
+    if (!e.ctrlKey && !e.altKey && e.keyCode === 38) { this.pressedUp(e); return; }
+    if (!e.ctrlKey && !e.altKey && e.keyCode === 39) { this.pressedRight(e); return; }
+    if (!e.ctrlKey && !e.altKey && e.keyCode === 40) { this.pressedDown(e); return; }
   }
 
   reLinkItems() {
@@ -545,54 +555,66 @@ class Budget {
     }
   }
 
-  pressedEnter() {
+  pressedEnter(/** @type {KeyboardEvent} */ e) {
     if (this.currentCell) {
-      this.currentCell.input.readOnly = false;
-      this.currentCell.input.focus();
+      if (this.currentCell.editing()) {
+        this.currentCell.commit();
+      }
+      else {
+        this.currentCell.edit();
+      }
     }
   }
 
-  pressedEsc() {
-    this.currentCell.input.readOnly = true;
-    console.log(this.currentCell.input);
+  pressedEsc(/** @type {KeyboardEvent} */ e) {
+    this.currentCell?.cancel();
   }
 
-  pressedLeft() {
-    this.currentCell?.unfocus();
-    if (this.currentCell?.leftCell) {
-      this.setCurrentCell(this.currentCell.leftCell);
+  pressedLeft(/** @type {KeyboardEvent} */ e) {
+    if (!this.currentCell?.editing()) {
+      e.preventDefault();
+      this.currentCell?.cancel();
+      if (this.currentCell?.leftCell) {
+        this.setCurrentCell(this.currentCell.leftCell);
+      }
     }
   }
 
-  pressedRight() {
-    this.currentCell?.unfocus();
-    if (this.currentCell?.rightCell) {
-      this.setCurrentCell(this.currentCell.rightCell);
+  pressedRight(/** @type {KeyboardEvent} */ e) {
+    if (!this.currentCell?.editing()) {
+      e.preventDefault();
+      this.currentCell?.cancel();
+      if (this.currentCell?.rightCell) {
+        this.setCurrentCell(this.currentCell.rightCell);
+      }
     }
   }
 
-  pressedUp() {
-    this.currentCell?.unfocus();
+  pressedUp(/** @type {KeyboardEvent} */ e) {
+    e.preventDefault();
+    this.currentCell?.cancel();
     if (this.currentCell?.upCell) {
       this.setCurrentCell(this.currentCell.upCell);
     }
   }
 
-  pressedDown() {
-    this.currentCell?.unfocus();
+  pressedDown(/** @type {KeyboardEvent} */ e) {
+    e.preventDefault();
+    this.currentCell?.cancel();
     if (this.currentCell?.downCell) {
       this.setCurrentCell(this.currentCell.downCell);
     }
   }
 
-  setCurrentCell(/** @type {InputCell | undefined} */ cell) {
+  setCurrentCell(/** @type {InputCell | null} */ cell) {
     if (this.currentCell === cell) return;
 
-    this.currentCell?.unfocus();
+    this.currentCell?.cancel();
     this.currentCell?.td.classList.remove('focused');
 
     this.currentCell = cell;
     this.currentCell?.td.classList.add('focused');
+
     this.currentCell?.td.scrollIntoView({
       behavior: 'smooth',
       block: 'nearest',
