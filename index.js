@@ -319,8 +319,7 @@ class UndoStack {
     const action = this.actions[--this.nextAction];
     action.undo();
 
-    this.budget.updateBackendData();
-    this.budget.totals.refresh();
+    this.budget.updated();
   }
 
   redo() {
@@ -328,8 +327,7 @@ class UndoStack {
     const action = this.actions[this.nextAction++];
     action.redo();
 
-    this.budget.updateBackendData();
-    this.budget.totals.refresh();
+    this.budget.updated();
   }
 
   doAction(/** @type {Action} */ action) {
@@ -340,8 +338,7 @@ class UndoStack {
     this.actions.push(action);
     this.redo();
 
-    this.budget.updateBackendData();
-    this.budget.totals.refresh();
+    this.budget.updated();
   }
 }
 
@@ -490,12 +487,16 @@ class Budget {
       }
     }
 
-    this.updateBackendData();
-    this.totals.refresh();
+    this.updated();
 
     this.keyHandler = this.handleKeys.bind(this);
 
     window.addEventListener('keydown', this.keyHandler);
+  }
+
+  updated() {
+    this.updateBackendData();
+    this.totals.refresh();
   }
 
   handleKeys(/** @type {KeyboardEvent} */ e) {
