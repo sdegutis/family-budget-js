@@ -41,6 +41,7 @@ table {
 input {
   font: inherit;
   /* background: #17f2; */
+  cursor: crosshair;
 }
 
 th {
