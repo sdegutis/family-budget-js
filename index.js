@@ -43,6 +43,11 @@ class InputCell {
   constructor({ initial, format, parse, budget }) {
     this.budget = budget;
 
+    this.leftCell = /*** @type {InputCell} */(null);
+    this.rightCell = /** @type {InputCell} */(null);
+    this.upCell = /***** @type {InputCell} */(null);
+    this.downCell = /*** @type {InputCell} */(null);
+
     /** @type {Effected} */
     this.effects = null;
 
@@ -56,48 +61,32 @@ class InputCell {
     this.input.readOnly = true;
     this.input.value = format(this.value);
 
-
-
     this.input.onfocus = () => {
-      // if (this.input.readOnly) {
-      //   this.input.blur();
-      // }
       this.budget.setCurrentCell(this);
     };
-
-    // this.input.onkeypress = (e) => {
-    //   console.log('ok');
-    //   if (this.input.readOnly) {
-    //     if (e.keyCode === 13) {
-    //       this.input.readOnly = false;
-    //       this.input.focus();
-    //     }
-    //   }
-    // };
 
     this.input.onclick = () => {
       this.budget.setCurrentCell(this);
     };
 
     this.input.onblur = () => {
-      // this.input.readOnly = true;
       this.input.value = format(this.value);
-      this.input.blur();
+      this.unfocus();
     };
 
-    this.input.onkeydown = (e) => {
-      if (e.keyCode === 13) {
-        const newVal = parse(this.input.value);
-        if (this.value !== newVal) {
-          budget.undoStack.doAction(new EditAction(this, this.value, newVal));
-          this.input.blur();
-        }
-      }
-      else if (e.keyCode === 27) {
-        this.input.value = format(this.value);
-        this.input.blur();
-      }
-    };
+    // this.input.onkeydown = (e) => {
+    //   if (e.keyCode === 13) {
+    //     const newVal = parse(this.input.value);
+    //     if (this.value !== newVal) {
+    //       budget.undoStack.doAction(new EditAction(this, this.value, newVal));
+    //       this.unfocus();
+    //     }
+    //   }
+    //   else if (e.keyCode === 27) {
+    //     this.input.value = format(this.value);
+    //     this.unfocus();
+    //   }
+    // };
 
     this.td.append(this.input);
   }
@@ -107,6 +96,11 @@ class InputCell {
     this.input.value = this.format(this.value);
     blink(this.input);
     this.effects?.refresh();
+  }
+
+  unfocus() {
+    this.input.readOnly = true;
+    this.input.blur();
   }
 }
 
@@ -242,6 +236,19 @@ class Expense extends Item {
       get: () => this.dueCell.value === 0 ? '-' : this.usuallyDueCell.value,
       dependsOn: [this.dueCell, this.usuallyDueCell],
     });
+
+    this.nameCell.rightCell = this.amountCell;
+
+    this.amountCell.leftCell = this.nameCell;
+    this.amountCell.rightCell = this.payPercentCell;
+
+    this.payPercentCell.leftCell = this.amountCell;
+    this.payPercentCell.rightCell = this.paidPercentCell;
+
+    this.paidPercentCell.leftCell = this.payPercentCell;
+    this.paidPercentCell.rightCell = this.usuallyDueCell;
+
+    this.usuallyDueCell.leftCell = this.paidPercentCell;
 
     this.tr.append(
       this.nameCell.td,
@@ -489,6 +496,8 @@ class Budget {
 
     this.updated();
 
+    this.reLinkItems();
+
     this.keyHandler = this.handleKeys.bind(this);
 
     window.addEventListener('keydown', this.keyHandler);
@@ -503,13 +512,92 @@ class Budget {
   handleKeys(/** @type {KeyboardEvent} */ e) {
     if (e.ctrlKey && !e.altKey && e.key === 'z') { e.preventDefault(); this.undoStack.undo(); return; }
     if (e.ctrlKey && !e.altKey && e.key === 'y') { e.preventDefault(); this.undoStack.redo(); return; }
+
+    if (!e.ctrlKey && !e.altKey && e.keyCode === 13) { e.preventDefault(); this.pressedEnter(); return; }
+    if (!e.ctrlKey && !e.altKey && e.keyCode === 27) { e.preventDefault(); this.pressedEsc(); return; }
+    if (!e.ctrlKey && !e.altKey && e.keyCode === 37) { e.preventDefault(); this.pressedLeft(); return; }
+    if (!e.ctrlKey && !e.altKey && e.keyCode === 38) { e.preventDefault(); this.pressedUp(); return; }
+    if (!e.ctrlKey && !e.altKey && e.keyCode === 39) { e.preventDefault(); this.pressedRight(); return; }
+    if (!e.ctrlKey && !e.altKey && e.keyCode === 40) { e.preventDefault(); this.pressedDown(); return; }
   }
 
-  setCurrentCell(/** @type {InputCell} */ cell) {
+  reLinkItems() {
+    const expenses = /** @type {Expense[]} */(this.items.filter(item => item instanceof Expense));
+
+    for (let i = 0; i < expenses.length - 1; i++) {
+      const a = expenses[i];
+      const b = expenses[i + 1];
+
+      a.nameCell.downCell = b.nameCell;
+      b.nameCell.upCell = a.nameCell;
+
+      a.amountCell.downCell = b.amountCell;
+      b.amountCell.upCell = a.amountCell;
+
+      a.payPercentCell.downCell = b.payPercentCell;
+      b.payPercentCell.upCell = a.payPercentCell;
+
+      a.paidPercentCell.downCell = b.paidPercentCell;
+      b.paidPercentCell.upCell = a.paidPercentCell;
+
+      a.usuallyDueCell.downCell = b.usuallyDueCell;
+      b.usuallyDueCell.upCell = a.usuallyDueCell;
+    }
+  }
+
+  pressedEnter() {
+    if (this.currentCell) {
+      this.currentCell.input.readOnly = false;
+      this.currentCell.input.focus();
+    }
+  }
+
+  pressedEsc() {
+    this.currentCell.input.readOnly = true;
+    console.log(this.currentCell.input);
+  }
+
+  pressedLeft() {
+    this.currentCell?.unfocus();
+    if (this.currentCell?.leftCell) {
+      this.setCurrentCell(this.currentCell.leftCell);
+    }
+  }
+
+  pressedRight() {
+    this.currentCell?.unfocus();
+    if (this.currentCell?.rightCell) {
+      this.setCurrentCell(this.currentCell.rightCell);
+    }
+  }
+
+  pressedUp() {
+    this.currentCell?.unfocus();
+    if (this.currentCell?.upCell) {
+      this.setCurrentCell(this.currentCell.upCell);
+    }
+  }
+
+  pressedDown() {
+    this.currentCell?.unfocus();
+    if (this.currentCell?.downCell) {
+      this.setCurrentCell(this.currentCell.downCell);
+    }
+  }
+
+  setCurrentCell(/** @type {InputCell | undefined} */ cell) {
+    if (this.currentCell === cell) return;
+
+    this.currentCell?.unfocus();
     this.currentCell?.td.classList.remove('focused');
 
     this.currentCell = cell;
-    this.currentCell.td.classList.add('focused');
+    this.currentCell?.td.classList.add('focused');
+    this.currentCell?.td.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'nearest',
+    });
   }
 
   updateBackendData() {
@@ -595,12 +683,14 @@ class AddItemAction {
 
   undo() {
     this.item.remove();
+    this.item.budget.reLinkItems();
   }
 
   redo() {
     this.item.add();
     this.item.tr.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     this.item.blink();
+    this.item.budget.reLinkItems();
   }
 }
 
@@ -618,10 +708,12 @@ class RemoveItemAction {
     this.item.add(this.index);
     this.item.tr.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     this.item.blink();
+    this.item.budget.reLinkItems();
   }
 
   redo() {
     this.item.remove();
+    this.item.budget.reLinkItems();
   }
 }
 
@@ -641,6 +733,7 @@ class MoveItemAction {
     item.add(this.from);
     item.tr.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     item.blink();
+    item.budget.reLinkItems();
   }
 
   redo() {
@@ -649,6 +742,7 @@ class MoveItemAction {
     item.add(this.to);
     item.tr.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     item.blink();
+    item.budget.reLinkItems();
   }
 }
 
