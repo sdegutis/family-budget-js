@@ -4,6 +4,7 @@ const remainderRowEl = /**@type {HTMLTableRowElement}*/(document.getElementById(
 const expenseRowsEl = /**@type {HTMLTableSectionElement}*/(document.getElementById('expenseRows'));
 const welcomeEl = /**@type {HTMLElement}*/(document.getElementById('welcome'));
 const highlighterEl = /**@type {HTMLElement}*/(document.getElementById('highlighter'));
+const toastEl = /**@type {HTMLElement}*/(document.getElementById('toast'));
 
 class CalculatedCell {
   /**
@@ -702,15 +703,18 @@ let currentBudget = new Budget();
 function openFile(/** @type {FileData} */json) {
   currentBudget.dispose();
   currentBudget = new Budget(json);
+  showToast("File opened.");
 }
 
 function newFile() {
   currentBudget.dispose();
   currentBudget = new Budget();
+  showToast("File reset.");
 }
 
 function savedFile() {
   currentBudget.undoStack.noteCleanAction();
+  showToast("File saved.");
 }
 
 function formatMoney(/** @type {number} */ amount) {
@@ -862,6 +866,26 @@ function blink(/** @type {HTMLElement} */el) {
   cancelLastBlink = () => {
     clearTimeout(stopBlink);
     clearChange();
+  };
+}
+
+/** @type {(() => void) | null} */
+let cancelToast = null;
+
+function showToast(/** @type {string} */ msg) {
+  if (cancelToast) cancelToast();
+
+  // toastEl.inn
+
+  const clearToast = setTimeout(() => {
+
+  }, 1000);
+
+  cancelToast = () => {
+
+
+
+    // clearToast();
   };
 }
 
