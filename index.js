@@ -1,7 +1,7 @@
-const totalRowEl = /**@type HTMLTableRowElement*/(document.getElementById('totalRow'));
-const balanceRowEl = /**@type HTMLTableRowElement*/(document.getElementById('balanceRow'));
-const remainderRowEl = /**@type HTMLTableRowElement*/(document.getElementById('remainderRow'));
-const expenseRowsEl = /**@type HTMLTableSectionElement*/(document.getElementById('expenseRows'));
+const totalRowEl = /**@type {HTMLTableRowElement}*/(document.getElementById('totalRow'));
+const balanceRowEl = /**@type {HTMLTableRowElement}*/(document.getElementById('balanceRow'));
+const remainderRowEl = /**@type {HTMLTableRowElement}*/(document.getElementById('remainderRow'));
+const expenseRowsEl = /**@type {HTMLTableSectionElement}*/(document.getElementById('expenseRows'));
 const welcomeEl = /**@type {HTMLElement}*/(document.getElementById('welcome'));
 
 class CalculatedCell {
