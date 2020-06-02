@@ -518,7 +518,7 @@ class Budget {
     this.scrollHandler = this.scroll.bind(this);
 
     window.addEventListener('keydown', this.keyHandler);
-    expenseRowsEl.parentElement.addEventListener('scroll', this.scrollHandler, { passive: true });
+    /**@type {HTMLElement}*/(expenseRowsEl.parentElement).addEventListener('scroll', this.scrollHandler, { passive: true });
   }
 
   updated() {
@@ -689,7 +689,7 @@ class Budget {
 
   dispose() {
     window.removeEventListener('keydown', this.keyHandler);
-    expenseRowsEl.parentElement.removeEventListener('scroll', this.scrollHandler);
+    /**@type {HTMLElement}*/(expenseRowsEl.parentElement).removeEventListener('scroll', this.scrollHandler);
     this.totals.dispose();
     for (const expense of [...this.items]) {
       expense.remove();
