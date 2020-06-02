@@ -533,7 +533,6 @@ function newFile() {
 
 function savedFile() {
   currentBudget.undoStack.noteCleanAction();
-  currentBudget.updateBackendData();
 }
 
 function formatMoney(/** @type {number} */ amount) {

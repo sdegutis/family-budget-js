@@ -90,6 +90,7 @@ electron.app.whenReady().then(() => {
   const writeData = () => {
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
     mainWindow.webContents.send('Saved');
+    isClean = true;
     resetTitle();
   };
 
