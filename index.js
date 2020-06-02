@@ -474,7 +474,8 @@ class Budget {
     this.dragging = /** @type {Item} */(null);
     this.dropping = /** @type {Item} */(null);
 
-    this.currentCell = /** @type {InputCell} */(null);
+    /** @type {InputCell} */
+    this.currentCell = null;
 
     this.undoStack = new UndoStack(this);
     this.items = /** @type {Item[]} */([]);
