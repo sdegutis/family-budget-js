@@ -164,6 +164,7 @@ class Item {
     };
   }
 
+  // wish TypeScript / JSDoc had a way to say "must be overridden"
   serialize() {
     throw new Error("Method not implemented.");
   }
