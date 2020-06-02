@@ -523,6 +523,7 @@ class Budget {
   }
 
   dispose() {
+    window.removeEventListener('keydown', this.keyHandler);
     this.totals.dispose();
     for (const expense of [...this.items]) {
       expense.remove();
