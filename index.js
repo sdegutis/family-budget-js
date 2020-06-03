@@ -714,6 +714,10 @@ function newFile() {
   showToast("File reset.");
 }
 
+function nothingToSave() {
+  showToast("No changes to save.");
+}
+
 function savedFile() {
   currentBudget.undoStack.noteCleanAction();
   showToast("File saved.");

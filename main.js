@@ -101,6 +101,9 @@ electron.app.whenReady().then(() => {
     else if (!isClean) {
       writeData();
     }
+    else {
+      mainWindow.webContents.send('NothingToSave');
+    }
   };
 
   const saveAsFile = () => {
