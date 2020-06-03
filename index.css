@@ -38,6 +38,9 @@ table {
 
 input {
   font: inherit;
+}
+
+.calculated.cell {
   background: #ffe;
 }
 

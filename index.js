@@ -23,6 +23,7 @@ class CalculatedCell {
 
     this.td = document.createElement('td');
     this.td.classList.add('cell');
+    this.td.classList.add('calculated');
     this.refresh();
   }
 
