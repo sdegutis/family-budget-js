@@ -20,6 +20,8 @@ electron.app.whenReady().then(() => {
     },
   });
 
+  mainWindow.setMenu(null);
+
   let file = /** @type {string | null} */(null);
   let isClean = true;
   let data = /** @type {any} */(null);
@@ -126,30 +128,30 @@ electron.app.whenReady().then(() => {
     if (nevermind("exit")) e.preventDefault();
   });
 
-  mainWindow.setMenu(electron.Menu.buildFromTemplate([
-    {
-      label: '&File', submenu: [
-        { label: '&New', accelerator: 'Ctrl+N', click: newFile },
-        { label: '&Open', accelerator: 'Ctrl+O', click: openFile },
-        { type: 'separator' },
-        { label: '&Save', accelerator: 'Ctrl+S', click: saveFile },
-        { label: 'Save &As', click: saveAsFile },
-        { type: 'separator' },
-        { label: 'E&xit', click: exit },
-      ],
-    },
-    {
-      label: '&Edit', submenu: [
-        { label: '&Undo', accelerator: 'Ctrl+Z', click: undo },
-        { label: '&Redo', accelerator: 'Ctrl+Y', click: redo },
-        { type: 'separator' },
-        { label: 'Add Expense', click: addExpense },
-        { label: 'Add Space', click: addSpace },
-      ],
-    },
-  ]));
-
   mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.setMenu(electron.Menu.buildFromTemplate([
+      {
+        label: '&File', submenu: [
+          { label: '&New', accelerator: 'Ctrl+N', click: newFile },
+          { label: '&Open', accelerator: 'Ctrl+O', click: openFile },
+          { type: 'separator' },
+          { label: '&Save', accelerator: 'Ctrl+S', click: saveFile },
+          { label: 'Save &As', click: saveAsFile },
+          { type: 'separator' },
+          { label: 'E&xit', click: exit },
+        ],
+      },
+      {
+        label: '&Edit', submenu: [
+          { label: '&Undo', accelerator: 'Ctrl+Z', click: undo },
+          { label: '&Redo', accelerator: 'Ctrl+Y', click: redo },
+          { type: 'separator' },
+          { label: 'Add Expense', click: addExpense },
+          { label: 'Add Space', click: addSpace },
+        ],
+      },
+    ]));
+
     const [, openedFile] = process.argv;
     if (openedFile && openedFile !== '.') {
       loadFile(openedFile);
