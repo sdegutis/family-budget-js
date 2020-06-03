@@ -249,7 +249,7 @@ class Expense extends Item {
     });
 
     this.actuallyDueCell = new CalculatedCell({
-      get: () => this.dueCell.value === 0 ? '-' : this.usuallyDueCell.value,
+      get: () => this.dueCell.value === 0 ? '' : this.usuallyDueCell.value,
       dependsOn: [this.dueCell, this.usuallyDueCell],
     });
 
