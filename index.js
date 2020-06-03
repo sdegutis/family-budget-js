@@ -498,6 +498,8 @@ class Budget {
     /** @type {InputCell | null} */
     this.currentCell = null;
 
+    highlighterEl.hidden = true;
+
     this.undoStack = new UndoStack(this);
     this.items = /** @type {Item[]} */([]);
     this.totals = new Totals(this, data?.balances);
