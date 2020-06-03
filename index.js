@@ -3,7 +3,6 @@ const balanceRowEl = /**@type {HTMLTableRowElement}*/(document.getElementById('b
 const remainderRowEl = /**@type {HTMLTableRowElement}*/(document.getElementById('remainderRow'));
 const expenseRowsEl = /**@type {HTMLTableSectionElement}*/(document.getElementById('expenseRows'));
 const welcomeEl = /**@type {HTMLElement}*/(document.getElementById('welcome'));
-const highlighterEl = /**@type {HTMLElement}*/(document.getElementById('highlighter'));
 const toastEl = /**@type {HTMLElement}*/(document.getElementById('toast'));
 
 class CalculatedCell {
@@ -498,8 +497,6 @@ class Budget {
     /** @type {InputCell | null} */
     this.currentCell = null;
 
-    highlighterEl.hidden = true;
-
     this.undoStack = new UndoStack(this);
     this.items = /** @type {Item[]} */([]);
     this.totals = new Totals(this, data?.balances);
@@ -518,22 +515,14 @@ class Budget {
     this.reLinkItems();
 
     this.keyHandler = this.handleKeys.bind(this);
-    this.scrollHandler = this.scroll.bind(this);
 
     window.addEventListener('keydown', this.keyHandler);
-    /**@type {HTMLElement}*/(expenseRowsEl.parentElement).addEventListener('scroll', this.scrollHandler, { passive: true });
   }
 
   updated() {
     this.updateBackendData();
     this.totals.refresh();
     welcomeEl.hidden = this.items.length > 0;
-  }
-
-  scroll() {
-    highlighterEl.classList.remove('animate');
-    this.repositionCellBorder();
-    highlighterEl.classList.add('animate');
   }
 
   handleKeys(/** @type {KeyboardEvent} */ e) {
@@ -640,21 +629,10 @@ class Budget {
     if (this.currentCell === cell) return;
 
     this.currentCell?.cancel();
-    // this.currentCell?.td.classList.remove('focused');
+    this.currentCell?.td.classList.remove('focused');
 
     this.currentCell = cell;
-
-    if (this.currentCell) {
-      highlighterEl.hidden = false;
-      highlighterEl.style.width = (this.currentCell.td.clientWidth + 2) + 'px';
-      highlighterEl.style.height = (this.currentCell.td.clientHeight + 2) + 'px';
-      this.repositionCellBorder();
-    }
-    else {
-      highlighterEl.hidden = true;
-    }
-
-    // this.currentCell?.td.classList.add('focused');
+    this.currentCell?.td.classList.add('focused');
     this.currentCell?.input.focus();
 
     this.currentCell?.td.scrollIntoView({
@@ -662,20 +640,6 @@ class Budget {
       block: 'nearest',
       inline: 'nearest',
     });
-  }
-
-  repositionCellBorder() {
-    if (!this.currentCell) return;
-
-    highlighterEl.style.left = (
-      this.currentCell.td.getBoundingClientRect().left +
-      document.documentElement.scrollLeft
-    ) + 'px';
-
-    highlighterEl.style.top = (
-      document.body.offsetTop
-      + this.currentCell.td.getBoundingClientRect().top
-    ) + 'px';
   }
 
   updateBackendData() {
@@ -692,7 +656,6 @@ class Budget {
 
   dispose() {
     window.removeEventListener('keydown', this.keyHandler);
-    /**@type {HTMLElement}*/(expenseRowsEl.parentElement).removeEventListener('scroll', this.scrollHandler);
     this.totals.dispose();
     for (const expense of [...this.items]) {
       expense.remove();

@@ -101,10 +101,10 @@ input {
   border: none;
 }
 
-/* td.focused {
+td.focused {
   border-color: blue;
   border-style: double;
-} */
+}
 
 .cell:focus:not(:read-only) {
   background: #17f3;
@@ -118,17 +118,6 @@ input {
 
 #welcome p {
   margin: 1em 0;
-}
-
-#highlighter {
-  position: absolute;
-  pointer-events: none;
-  background: transparent;
-  border: 1px solid blue;
-}
-
-#highlighter.animate {
-  transition: left 150ms ease-out, width 150ms ease-out, height 150ms ease-out, top 150ms ease-out;
 }
 
 #toast {
