@@ -117,8 +117,8 @@ td.focused {
   font-style: italic;
   background: #f0f0f0;
 
-  justify-content: center;
-  align-content: center;
+  justify-content: start;
+  align-content: start;
   gap: 1em;
 }
 
