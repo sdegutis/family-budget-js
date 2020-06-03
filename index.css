@@ -12,16 +12,25 @@ html {
 
 body {
   height: 100vh;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
+  /* display: grid; */
+  /* grid-template-rows: auto 1fr auto; */
   width: 700px;
-  overflow: hidden;
-  overflow-x: overlay;
+  overflow: auto;
 }
 
 body::-webkit-scrollbar,
 body > div::-webkit-scrollbar {
   display: none;
+}
+
+body > div:nth-child(1) {
+  position: sticky;
+  top: 0;
+}
+
+body > div:nth-child(3) {
+  position: sticky;
+  bottom: 0;
 }
 
 body > div {
@@ -121,7 +130,7 @@ td.focused {
 }
 
 #toast {
-  position: absolute;
+  position: fixed;
   background: #333;
   color: #fff;
   padding: 1em 2em;
