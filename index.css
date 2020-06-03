@@ -26,7 +26,6 @@ body > div {
   overflow-x: hidden;
   overflow-y: auto;
   background: #fff;
-  border-right: 1px solid #ddd;
 }
 
 table {
@@ -112,13 +111,19 @@ td.focused {
 }
 
 #welcome {
-  margin: 1rem;
+  padding: 1rem;
+  height: 100%;
   font-size: 120%;
   font-style: italic;
+  background: #f0f0f0;
+
+  justify-content: center;
+  align-content: center;
+  gap: 1em;
 }
 
-#welcome p {
-  margin: 1em 0;
+#welcome:not([hidden]) {
+  display: grid;
 }
 
 #toast {
