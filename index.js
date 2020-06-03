@@ -71,6 +71,10 @@ class InputCell {
       this.budget.setCurrentCell(this);
     };
 
+    this.input.ondblclick = () => {
+      this.edit();
+    };
+
     this.input.onblur = () => {
       this.cancel();
     };
