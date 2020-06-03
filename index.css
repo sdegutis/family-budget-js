@@ -18,10 +18,10 @@ body {
   overflow: auto;
 }
 
-body::-webkit-scrollbar,
+/* body::-webkit-scrollbar,
 body > div::-webkit-scrollbar {
   display: none;
-}
+} */
 
 body > div:nth-child(1) {
   position: sticky;
