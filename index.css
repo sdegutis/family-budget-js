@@ -10,27 +10,16 @@ html {
   font-size: 12px;
 }
 
+html,
 body {
-  height: 100vh;
-  /* display: grid; */
-  /* grid-template-rows: auto 1fr auto; */
+  height: 100%;
+}
+
+body {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
   width: 700px;
   overflow: auto;
-}
-
-/* body::-webkit-scrollbar,
-body > div::-webkit-scrollbar {
-  display: none;
-} */
-
-body > div:nth-child(1) {
-  position: sticky;
-  top: 0;
-}
-
-body > div:nth-child(3) {
-  position: sticky;
-  bottom: 0;
 }
 
 body > div {
