@@ -100,7 +100,9 @@ class InputCell {
   edit() {
     this.input.readOnly = false;
     this.input.focus();
-    this.input.select();
+    if (this.input.selectionStart === this.input.selectionEnd) {
+      this.input.select();
+    }
   }
 
   editing() {
