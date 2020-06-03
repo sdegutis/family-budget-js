@@ -75,6 +75,14 @@ class InputCell {
       this.edit();
     };
 
+    this.input.onpaste = (e) => {
+      if (this.editing()) return;
+
+      e.preventDefault();
+      this.edit();
+      this.input.value = /** @type {string} */(e.clipboardData?.getData('Text'));
+    };
+
     this.input.onblur = () => {
       this.cancel();
     };
