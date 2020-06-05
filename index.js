@@ -75,6 +75,11 @@ class InputCell {
       this.edit();
     };
 
+    this.input.oncopy = (e) => {
+      e.preventDefault();
+      e.clipboardData?.setData('Text', this.input.value);
+    };
+
     this.input.onpaste = (e) => {
       if (this.editing()) return;
 
