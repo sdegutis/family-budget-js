@@ -72,6 +72,8 @@ electron.app.whenReady().then(() => {
   };
 
   const loadFile = (/** @type {string} */ path) => {
+    electron.app.addRecentDocument(path);
+
     file = path;
     const json = JSON.parse(fs.readFileSync(file, 'utf-8'));
     mainWindow.webContents.send('OpenFile', json);
