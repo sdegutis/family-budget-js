@@ -81,6 +81,7 @@ class InputCell {
       e.preventDefault();
       this.edit();
       this.input.value = /** @type {string} */(e.clipboardData?.getData('Text'));
+      this.commit();
     };
 
     this.input.onblur = () => {
