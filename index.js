@@ -712,7 +712,7 @@ function formatMoney(/** @type {number} */ amount) {
 }
 
 function parseMoney(/** @type {string} */ amount) {
-  return Math.round(parseFloat(amount.replace(/\$/g, '')) * 100) / 100;
+  return Math.round(parseFloat(amount.replace(/[^.\d]/g, '')) * 100) / 100;
 }
 
 function formatPercent(/** @type {number} */ amount) {
@@ -720,7 +720,7 @@ function formatPercent(/** @type {number} */ amount) {
 }
 
 function parsePercent(/** @type {string} */ amount) {
-  return Math.round(parseFloat(amount.replace(/%/g, ''))) / 100;
+  return Math.round(parseFloat(amount.replace(/[^.\d]/g, ''))) / 100;
 }
 
 function addExpense() {
