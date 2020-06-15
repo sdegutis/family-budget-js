@@ -10,6 +10,8 @@ new ProgId({
 });
 Regedit.installAll();
 
+const isMac = process.platform === 'darwin';
+
 electron.app.whenReady().then(() => {
   const mainWindow = new electron.BrowserWindow({
     title: 'Family Budget',
@@ -19,8 +21,6 @@ electron.app.whenReady().then(() => {
       preload: path.join(__dirname, 'preload.js'),
     },
   });
-
-  mainWindow.setMenu(null);
 
   let file = /** @type {string | null} */(null);
   let isClean = true;
@@ -126,23 +126,15 @@ electron.app.whenReady().then(() => {
   const addExpense = () => mainWindow.webContents.send('AddExpense');
   const addSpace = () => mainWindow.webContents.send('AddSpace');
 
-  mainWindow.on('close', (e) => {
-    if (nevermind("exit")) e.preventDefault();
-  });
-
-  mainWindow.webContents.on('did-finish-load', () => {
-    const isMac = process.platform === 'darwin';
-
-    const menu = electron.Menu.buildFromTemplate([
-      ...(isMac ? [
-        /** @type {Electron.MenuItem} */ ({ role: 'appMenu' }),
-      ] : []),
+  if (isMac) {
+    electron.app.applicationMenu = electron.Menu.buildFromTemplate([
+      { role: 'appMenu' },
       {
         label: '&File', submenu: [
-          { label: '&New', accelerator: 'Ctrl+N', click: newFile },
-          { label: '&Open', accelerator: 'Ctrl+O', click: openFile },
+          { label: '&New', accelerator: 'Cmd+N', click: newFile },
+          { label: '&Open', accelerator: 'Cmd+O', click: openFile },
           { type: 'separator' },
-          { label: '&Save', accelerator: 'Ctrl+S', click: saveFile },
+          { label: '&Save', accelerator: 'Cmd+S', click: saveFile },
           { label: 'Save &As', click: saveAsFile },
           { type: 'separator' },
           { label: 'E&xit', click: exit },
@@ -150,16 +142,45 @@ electron.app.whenReady().then(() => {
       },
       {
         label: '&Edit', submenu: [
-          { label: '&Undo', accelerator: 'Ctrl+Z', click: undo },
-          { label: '&Redo', accelerator: 'Ctrl+Y', click: redo },
+          { label: '&Undo', accelerator: 'Cmd+Z', click: undo },
+          { label: '&Redo', accelerator: 'Cmd+Y', click: redo },
           { type: 'separator' },
-          { label: 'Add Expense', click: addExpense },
-          { label: 'Add Space', click: addSpace },
+          { label: 'Add Expense', accelerator: 'Cmd+E', click: addExpense },
+          { label: 'Add Space', accelerator: 'Cmd+E', click: addSpace },
         ],
       },
     ]);
-    electron.app.applicationMenu = menu;
-    mainWindow.setMenu(menu);
+  }
+
+  mainWindow.on('close', (e) => {
+    if (nevermind("exit")) e.preventDefault();
+  });
+
+  mainWindow.webContents.on('did-finish-load', () => {
+    if (!isMac) {
+      mainWindow.setMenu(electron.Menu.buildFromTemplate([
+        {
+          label: '&File', submenu: [
+            { label: '&New', accelerator: 'Ctrl+N', click: newFile },
+            { label: '&Open', accelerator: 'Ctrl+O', click: openFile },
+            { type: 'separator' },
+            { label: '&Save', accelerator: 'Ctrl+S', click: saveFile },
+            { label: 'Save &As', click: saveAsFile },
+            { type: 'separator' },
+            { label: 'E&xit', click: exit },
+          ],
+        },
+        {
+          label: '&Edit', submenu: [
+            { label: '&Undo', accelerator: 'Ctrl+Z', click: undo },
+            { label: '&Redo', accelerator: 'Ctrl+Y', click: redo },
+            { type: 'separator' },
+            { label: 'Add Expense', accelerator: 'Ctrl+E', click: addExpense },
+            { label: 'Add Space', accelerator: 'Ctrl+Shift+E', click: addSpace },
+          ],
+        },
+      ]));
+    }
 
     const [, openedFile] = process.argv;
     if (openedFile && openedFile !== '.') {
