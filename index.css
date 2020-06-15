@@ -24,8 +24,18 @@ body {
 
 body > div {
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: scroll;
   background: #fff;
+}
+
+body > div:nth-child(1),
+body > div:nth-child(3) {
+  background: #f0f0f0;
+}
+
+body > div:nth-child(1)::-webkit-scrollbar,
+body > div:nth-child(3)::-webkit-scrollbar {
+  visibility: hidden;
 }
 
 table {
