@@ -135,7 +135,7 @@ electron.app.whenReady().then(() => {
           { label: '&Open', accelerator: 'Cmd+O', click: openFile },
           { type: 'separator' },
           { label: '&Save', accelerator: 'Cmd+S', click: saveFile },
-          { label: 'Save &As', click: saveAsFile },
+          { label: 'Save &As', accelerator: 'Cmd+Shift+S', click: saveAsFile },
           { type: 'separator' },
           { label: 'E&xit', click: exit },
         ],
@@ -143,10 +143,10 @@ electron.app.whenReady().then(() => {
       {
         label: '&Edit', submenu: [
           { label: '&Undo', accelerator: 'Cmd+Z', click: undo },
-          { label: '&Redo', accelerator: 'Cmd+Y', click: redo },
+          { label: '&Redo', accelerator: 'Cmd+Shift+Z', click: redo },
           { type: 'separator' },
           { label: 'Add Expense', accelerator: 'Cmd+E', click: addExpense },
-          { label: 'Add Space', accelerator: 'Cmd+E', click: addSpace },
+          { label: 'Add Space', accelerator: 'Cmd+Shift+E', click: addSpace },
         ],
       },
     ]);
