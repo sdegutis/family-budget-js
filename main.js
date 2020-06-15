@@ -131,7 +131,12 @@ electron.app.whenReady().then(() => {
   });
 
   mainWindow.webContents.on('did-finish-load', () => {
-    mainWindow.setMenu(electron.Menu.buildFromTemplate([
+    const isMac = process.platform === 'darwin';
+
+    const menu = electron.Menu.buildFromTemplate([
+      ...(isMac ? [
+        /** @type {Electron.MenuItem} */ ({ role: 'appMenu' }),
+      ] : []),
       {
         label: '&File', submenu: [
           { label: '&New', accelerator: 'Ctrl+N', click: newFile },
@@ -152,7 +157,9 @@ electron.app.whenReady().then(() => {
           { label: 'Add Space', click: addSpace },
         ],
       },
-    ]));
+    ]);
+    electron.app.applicationMenu = menu;
+    mainWindow.setMenu(menu);
 
     const [, openedFile] = process.argv;
     if (openedFile && openedFile !== '.') {
