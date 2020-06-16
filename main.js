@@ -36,6 +36,7 @@ function createWindow() {
     switch (msg) {
       case 'isClean': {
         [isClean] = args;
+        if (isMac) mainWindow.documentEdited = !isClean;
         resetTitle();
         break;
       }
@@ -103,6 +104,7 @@ function createWindow() {
     fs.writeFileSync(/** @type {string} */(file), JSON.stringify(data, null, 2));
     mainWindow.webContents.send('Saved');
     isClean = true;
+    if (isMac) mainWindow.documentEdited = !isClean;
     resetTitle();
   };
 
