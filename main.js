@@ -30,27 +30,33 @@ electron.app.whenReady().then(() => {
     mainWindow.title = (isClean ? '' : '• ') + (file ? `${path.basename(file)} - ` : '') + 'Family Budget';
   };
 
-  electron.ipcMain.on('isClean', (event, arg1) => {
-    isClean = arg1;
-    resetTitle();
-  });
-
-  electron.ipcMain.on('changedData', (event, arg1) => {
-    data = arg1;
-  });
-
-  electron.ipcMain.on('toggleDevTools', (event, arg1) => {
-    mainWindow.webContents.toggleDevTools();
-  });
-
-  electron.ipcMain.on('reload', (event, arg1) => {
-    mainWindow.reload();
-  });
-
-  electron.ipcMain.on('showMenu', (event, x, y, i) => {
-    electron.Menu.buildFromTemplate([
-      { label: 'Delete', click() { mainWindow.webContents.send('DeleteItem', i); } },
-    ]).popup({ window: mainWindow, x, y });
+  mainWindow.webContents.on('ipc-message', (event, msg, ...args) => {
+    switch (msg) {
+      case 'isClean': {
+        [isClean] = args;
+        resetTitle();
+        break;
+      }
+      case 'changedData': {
+        [data] = args;
+        break;
+      }
+      case 'toggleDevTools': {
+        mainWindow.webContents.toggleDevTools();
+        break;
+      }
+      case 'reload': {
+        mainWindow.reload();
+        break;
+      }
+      case 'showMenu': {
+        const [x, y, i] = args;
+        electron.Menu.buildFromTemplate([
+          { label: 'Delete', click() { mainWindow.webContents.send('DeleteItem', i); } },
+        ]).popup({ window: mainWindow, x, y });
+        break;
+      }
+    }
   });
 
   mainWindow.loadFile('index.html');
