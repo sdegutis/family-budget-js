@@ -14,6 +14,12 @@ const isMac = process.platform === 'darwin';
 
 electron.app.whenReady().then(createWindow);
 
+electron.app.on('window-all-closed', function () {
+  if (process.platform !== 'darwin') {
+    electron.app.quit();
+  }
+});
+
 function createWindow() {
   const mainWindow = new electron.BrowserWindow({
     title: 'Family Budget',
