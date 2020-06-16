@@ -172,7 +172,7 @@ function createWindow(file) {
   }
 
   mainWindow.on('close', (e) => {
-    if (nevermind("exit")) e.preventDefault();
+    if (nevermind(isMac ? "close the document" : "exit")) e.preventDefault();
   });
 
   mainWindow.webContents.on('did-finish-load', () => {
