@@ -242,6 +242,7 @@ function setAppMenu(handlers) {
         { label: 'Add Space', accelerator: 'Cmd+Shift+E', click: handlers.addSpace, enabled: !!handlers.addSpace },
       ],
     },
+    { role: 'windowMenu' },
   ]);
 }
 
