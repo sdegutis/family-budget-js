@@ -12,7 +12,9 @@ Regedit.installAll();
 
 const isMac = process.platform === 'darwin';
 
-electron.app.whenReady().then(() => {
+electron.app.whenReady().then(createWindow);
+
+function createWindow() {
   const mainWindow = new electron.BrowserWindow({
     title: 'Family Budget',
     width: 800,
@@ -193,4 +195,4 @@ electron.app.whenReady().then(() => {
       loadFile(openedFile);
     }
   });
-});
+}
