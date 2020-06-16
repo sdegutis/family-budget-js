@@ -550,9 +550,6 @@ class Budget {
   }
 
   handleKeys(/** @type {KeyboardEvent} */ e) {
-    if (e.ctrlKey && !e.altKey && e.key === 'z') { e.preventDefault(); this.undoStack.undo(); return; }
-    if (e.ctrlKey && !e.altKey && e.key === 'y') { e.preventDefault(); this.undoStack.redo(); return; }
-
     if (!e.ctrlKey && !e.altKey && e.key.length === 1 &&
       this.currentCell && !this.currentCell.editing()
     ) {
