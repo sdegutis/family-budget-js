@@ -200,7 +200,10 @@ class Item {
     throw new Error("Method not implemented.");
   }
 
-  add(/** @type {number=} */ index) {
+  /**
+   * @param {number=} index
+   */
+  add(index) {
     if (index === undefined) index = this.budget.items.length;
     this.budget.items.splice(index, 0, this);
     expenseRowsEl.insertBefore(this.tr, expenseRowsEl.children[index]);
