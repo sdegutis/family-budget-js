@@ -141,31 +141,28 @@ function createWindow() {
   const redo = () => mainWindow.webContents.send('Redo');
   const addExpense = () => mainWindow.webContents.send('AddExpense');
   const addSpace = () => mainWindow.webContents.send('AddSpace');
+  const closeWindow = () => mainWindow.close();
 
   if (isMac) {
-    electron.app.applicationMenu = electron.Menu.buildFromTemplate([
-      { role: 'appMenu' },
-      {
-        label: '&File', submenu: [
-          { label: '&New', accelerator: 'Cmd+N', click: newFile },
-          { label: '&Open', accelerator: 'Cmd+O', click: openFile },
-          { type: 'separator' },
-          { label: '&Save', accelerator: 'Cmd+S', click: saveFile },
-          { label: 'Save &As', accelerator: 'Cmd+Shift+S', click: saveAsFile },
-          { type: 'separator' },
-          { label: 'E&xit', click: exit },
-        ],
-      },
-      {
-        label: '&Edit', submenu: [
-          { label: '&Undo', accelerator: 'Cmd+Z', click: undo },
-          { label: '&Redo', accelerator: 'Cmd+Shift+Z', click: redo },
-          { type: 'separator' },
-          { label: 'Add Expense', accelerator: 'Cmd+E', click: addExpense },
-          { label: 'Add Space', accelerator: 'Cmd+Shift+E', click: addSpace },
-        ],
-      },
-    ]);
+    mainWindow.on('focus', () => {
+      setAppMenu({
+        saveFile,
+        saveAsFile,
+        undo,
+        redo,
+        addExpense,
+        addSpace,
+        closeWindow,
+      });
+    });
+
+    mainWindow.on('blur', () => {
+      setAppMenu({});
+    });
+
+    mainWindow.on('closed', () => {
+      setAppMenu({});
+    });
   }
 
   mainWindow.on('close', (e) => {
@@ -203,4 +200,50 @@ function createWindow() {
       loadFile(openedFile);
     }
   });
+}
+
+/** @typedef {Electron.MenuItemConstructorOptions['click']} MenuClicker */
+
+/**
+ * @param {object}       handlers
+ * @param {MenuClicker=} handlers.saveFile
+ * @param {MenuClicker=} handlers.saveAsFile
+ * @param {MenuClicker=} handlers.undo
+ * @param {MenuClicker=} handlers.redo
+ * @param {MenuClicker=} handlers.addExpense
+ * @param {MenuClicker=} handlers.addSpace
+ * @param {MenuClicker=} handlers.closeWindow
+ */
+function setAppMenu(handlers) {
+  electron.app.applicationMenu = electron.Menu.buildFromTemplate([
+    { role: 'appMenu' },
+    {
+      label: '&File', submenu: [
+        { label: '&New', accelerator: 'Cmd+N', click: newWindow },
+        { label: '&Open', accelerator: 'Cmd+O', click: openFileNewWindow },
+        { type: 'separator' },
+        { label: '&Save', accelerator: 'Cmd+S', click: handlers.saveFile, enabled: !!handlers.saveFile },
+        { label: 'Save &As', accelerator: 'Cmd+Shift+S', click: handlers.saveAsFile, enabled: !!handlers.saveAsFile },
+        { type: 'separator' },
+        { label: 'Close', accelerator: 'Cmd+W', click: handlers.closeWindow, enabled: !!handlers.closeWindow },
+      ],
+    },
+    {
+      label: '&Edit', submenu: [
+        { label: '&Undo', accelerator: 'Cmd+Z', click: handlers.undo, enabled: !!handlers.undo },
+        { label: '&Redo', accelerator: 'Cmd+Shift+Z', click: handlers.redo, enabled: !!handlers.redo },
+        { type: 'separator' },
+        { label: 'Add Expense', accelerator: 'Cmd+E', click: handlers.addExpense, enabled: !!handlers.addExpense },
+        { label: 'Add Space', accelerator: 'Cmd+Shift+E', click: handlers.addSpace, enabled: !!handlers.addSpace },
+      ],
+    },
+  ]);
+}
+
+function newWindow() {
+  createWindow();
+}
+
+function openFileNewWindow() {
+  createWindow();
 }
