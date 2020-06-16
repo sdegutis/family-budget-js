@@ -12,7 +12,11 @@ Regedit.installAll();
 
 const isMac = process.platform === 'darwin';
 
-electron.app.whenReady().then(createWindow);
+electron.app.whenReady().then(() => {
+  const [, openedFile] = process.argv;
+  const file = (openedFile && openedFile !== '.') ? openedFile : null;
+  createWindow(file);
+});
 
 electron.app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') {
@@ -20,7 +24,10 @@ electron.app.on('window-all-closed', function () {
   }
 });
 
-function createWindow() {
+/**
+ * @param {string | null} file
+ */
+function createWindow(file) {
   const mainWindow = new electron.BrowserWindow({
     title: 'Family Budget',
     width: 800,
@@ -30,7 +37,6 @@ function createWindow() {
     },
   });
 
-  let file = /** @type {string | null} */(null);
   let isClean = true;
   let data = /** @type {any} */(null);
 
@@ -195,9 +201,8 @@ function createWindow() {
       ]));
     }
 
-    const [, openedFile] = process.argv;
-    if (openedFile && openedFile !== '.') {
-      loadFile(openedFile);
+    if (file) {
+      loadFile(file);
     }
   });
 }
@@ -241,9 +246,14 @@ function setAppMenu(handlers) {
 }
 
 function newWindow() {
-  createWindow();
+  createWindow(null);
 }
 
 function openFileNewWindow() {
-  createWindow();
+  const files = electron.dialog.showOpenDialogSync({
+    filters: [{ name: 'Family Budget', extensions: ['familybudget'] }],
+  });
+  if (!files) return;
+
+  createWindow(files[0]);
 }
