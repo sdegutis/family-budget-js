@@ -147,11 +147,10 @@ td.focused {
 }
 
 #welcome {
-  padding: 1rem;
+  padding: 4rem;
   height: 100%;
-  font-size: 120%;
   font-style: italic;
-  background: #f0f0f0;
+  border-right: 1px solid #ddd;
 
   justify-content: start;
   align-content: start;
