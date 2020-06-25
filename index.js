@@ -29,7 +29,7 @@ class CalculatedCell {
 
   refresh() {
     this.value = this.get();
-    this.td.innerText = formatMoney(this.value);
+    this.td.innerText = this.value === 0 ? '' : formatMoney(this.value);
     this.effects?.refresh();
   }
 }
