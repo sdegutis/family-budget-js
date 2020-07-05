@@ -692,6 +692,13 @@ function openFile(/** @type {FileData} */json) {
   showToast("File opened.");
 }
 
+function useData(/** @type {FileData} */json) {
+  currentBudget.dispose();
+  currentBudget = new Budget(json);
+  currentBudget.undoStack.cleanAction = new ImpossibleAction();
+  currentBudget.updateBackendData();
+}
+
 function newFile() {
   currentBudget.dispose();
   currentBudget = new Budget();
@@ -837,6 +844,11 @@ class EditAction {
     this.cell.useValue(this.newVal);
     this.cell.input.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
   }
+}
+
+class ImpossibleAction {
+  undo() { }
+  redo() { }
 }
 
 /** @type {(() => void) | null} */

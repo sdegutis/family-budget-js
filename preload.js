@@ -11,3 +11,4 @@ electron.ipcRenderer.on('Saved', (event) => savedFile());
 electron.ipcRenderer.on('OpenFile', (event, data) => openFile(data));
 electron.ipcRenderer.on('DeleteItem', (event, data) => currentBudget.deleteItem(data));
 electron.ipcRenderer.on('NothingToSave', (event, data) => nothingToSave());
+electron.ipcRenderer.on('UseData', (event, data) => useData(data));

@@ -1,6 +1,7 @@
 const electron = require('electron');
 const path = require('path');
 const fs = require('fs');
+const child_process = require('child_process');
 
 // @ts-ignore
 const { ProgId, ShellOption, Regedit } = require('electron-regedit');
@@ -15,7 +16,13 @@ const isMac = process.platform === 'darwin';
 electron.app.whenReady().then(() => {
   const [, openedFile] = process.argv;
   const file = (openedFile && openedFile !== '.') ? openedFile : null;
-  createWindow(file);
+
+  let data = null;
+  if (process.env.FAMILY_BUDGET_DATA) {
+    data = JSON.parse(process.env.FAMILY_BUDGET_DATA);
+  }
+
+  createWindow(file, data);
 });
 
 electron.app.on('window-all-closed', function () {
@@ -26,8 +33,9 @@ electron.app.on('window-all-closed', function () {
 
 /**
  * @param {string | null} file
+ * @param {any}           initialData
  */
-function createWindow(file) {
+function createWindow(file, initialData) {
   const mainWindow = new electron.BrowserWindow({
     title: 'Family Budget',
     width: 800,
@@ -90,6 +98,18 @@ function createWindow(file) {
     mainWindow.webContents.send('NewFile');
     file = null;
     resetTitle();
+  };
+
+  const duplicateFile = () => {
+    child_process.spawn(process.argv0, process.argv.slice(1), {
+      detached: true,
+      cwd: process.cwd(),
+      stdio: ['ignore', 'ignore', 'ignore'],
+      env: {
+        ...process.env,
+        FAMILY_BUDGET_DATA: JSON.stringify(data),
+      },
+    });
   };
 
   const loadFile = (/** @type {string} */ path) => {
@@ -176,12 +196,17 @@ function createWindow(file) {
   });
 
   mainWindow.webContents.on('did-finish-load', () => {
+    if (initialData) {
+      mainWindow.webContents.send('UseData', initialData);
+    }
+
     if (!isMac) {
       mainWindow.setMenu(electron.Menu.buildFromTemplate([
         {
           label: '&File', submenu: [
             { label: '&New', accelerator: 'Ctrl+N', click: newFile },
             { label: '&Open', accelerator: 'Ctrl+O', click: openFile },
+            { label: '&Duplicate', accelerator: 'Ctrl+Shift+D', click: duplicateFile },
             { type: 'separator' },
             { label: '&Save', accelerator: 'Ctrl+S', click: saveFile },
             { label: 'Save &As', click: saveAsFile },
@@ -247,7 +272,7 @@ function setAppMenu(handlers) {
 }
 
 function newWindow() {
-  createWindow(null);
+  createWindow(null, null);
 }
 
 function openFileNewWindow() {
@@ -256,5 +281,5 @@ function openFileNewWindow() {
   });
   if (!files) return;
 
-  createWindow(files[0]);
+  createWindow(files[0], null);
 }
